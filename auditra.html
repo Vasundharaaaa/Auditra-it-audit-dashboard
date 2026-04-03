@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AUDITRA – Intelligent IT Audit & Compliance System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#080D1A;
+  --sidebar:#050912;
+  --card:#0E1628;
+  --card2:#0A1020;
+  --accent:#6C63FF;
+  --accent2:#A78BFA;
+  --accent3:#4338CA;
+  --teal:#06B6D4;
+  --text:#E2E8F0;
+  --text2:#94A3B8;
+  --text3:#4B5563;
+  --border:rgba(108,99,255,0.12);
+  --green:#10B981;
+  --yellow:#F59E0B;
+  --orange:#F97316;
+  --red:#EF4444;
+  --glow:rgba(108,99,255,0.25);
+  --sb-width:220px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(108,99,255,0.35);border-radius:4px;}
+::-webkit-scrollbar-corner{background:transparent;}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--sidebar);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.7s ease;}
+#splash.out{opacity:0;pointer-events:none;}
+.sp-shield{width:80px;height:80px;margin-bottom:24px;animation:shieldPulse 2s ease-in-out infinite;}
+@keyframes shieldPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 8px rgba(108,99,255,0.4))}50%{transform:scale(1.06);filter:drop-shadow(0 0 24px rgba(108,99,255,0.7))}}
+.sp-name{font-family:'Syne',sans-serif;font-size:3.2rem;font-weight:800;background:linear-gradient(120deg,#fff 0%,var(--accent2) 50%,var(--teal) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px;}
+.sp-tag{font-size:.85rem;color:var(--text2);margin-top:6px;letter-spacing:.4px;}
+.sp-loader{width:260px;height:2px;background:rgba(255,255,255,.06);border-radius:4px;margin-top:44px;overflow:hidden;}
+.sp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent3),var(--accent),var(--teal));border-radius:4px;animation:spLoad 2s cubic-bezier(.4,0,.2,1) forwards;}
+@keyframes spLoad{0%{width:0}100%{width:100%}}
+
+/* PROCESSING */
+#proc{position:fixed;inset:0;background:rgba(8,13,26,0.95);backdrop-filter:blur(8px);z-index:8888;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+#proc.on{display:flex;}
+.proc-ring{width:56px;height:56px;border:3px solid rgba(108,99,255,.15);border-top-color:var(--accent);border-radius:50%;animation:spin 0.9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc-msg{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);}
+.proc-sub{font-size:.82rem;color:var(--text2);}
+
+/* LAYOUT */
+#app{display:flex;width:100%;height:100%;overflow:hidden;}
+
+/* SIDEBAR */
+#sidebar{
+  width:var(--sb-width);
+  min-width:var(--sb-width);
+  max-width:var(--sb-width);
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  transition:width .3s ease,min-width .3s ease,max-width .3s ease;
+  flex-shrink:0;
+}
+#sidebar.collapsed{width:62px;min-width:62px;max-width:62px;}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:16px 12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative;}
+.sb-logo-icon{width:30px;height:30px;flex-shrink:0;}
+.sb-brand-text{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#A78BFA;background:linear-gradient(120deg,#fff,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;flex:1;opacity:1;transition:opacity .3s;letter-spacing:1px;}
+#sidebar.collapsed .sb-brand-text{opacity:0;width:0;overflow:hidden;flex:0;pointer-events:none;}
+#sb-toggle-btn{
+  position:fixed;
+  top:18px;
+  left:209px;
+  width:22px;height:22px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent3),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  z-index:9000;
+  box-shadow:0 0 0 3px rgba(67,56,202,.35),0 2px 10px rgba(108,99,255,.5);
+  transition:left .3s ease,background .2s;
+}
+#sb-toggle-btn:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 0 3px rgba(108,99,255,.5),0 2px 14px rgba(108,99,255,.6);}
+#sb-toggle-btn svg{width:10px;height:10px;transition:transform .3s;flex-shrink:0;}
+#sidebar.collapsed ~ #sb-toggle-btn{left:51px;}
+#sidebar.collapsed ~ #sb-toggle-btn svg{transform:rotate(180deg);}
+.sb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 0;}
+.nav-section{padding:7px 14px 3px;font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;white-space:nowrap;overflow:hidden;transition:opacity .2s;}
+#sidebar.collapsed .nav-section{opacity:0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:var(--text2);font-size:.82rem;font-weight:500;position:relative;overflow:hidden;white-space:nowrap;transition:color .2s,background .2s;}
+.nav-item:hover{background:rgba(108,99,255,.08);color:var(--text);}
+.nav-item.active{background:rgba(108,99,255,.14);color:var(--accent2);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2.5px;background:var(--accent);border-radius:0 2px 2px 0;}
+.nav-icon{width:16px;height:16px;flex-shrink:0;}
+.nav-label{overflow:hidden;text-overflow:ellipsis;transition:opacity .2s;white-space:nowrap;}
+#sidebar.collapsed .nav-label{opacity:0;width:0;}
+.sb-bottom{flex-shrink:0;border-top:1px solid var(--border);overflow:hidden;transition:opacity .2s;}
+#sidebar.collapsed .sb-bottom{opacity:0;pointer-events:none;}
+.sb-mini-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;padding:10px 10px 8px;}
+.sb-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:7px 5px;text-align:center;}
+.sb-stat-val{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;color:var(--text);}
+.sb-stat-lbl{font-size:.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.sb-comply{padding:0 10px 10px;}
+.sb-comply-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.sb-comply-label{font-size:.68rem;color:var(--text2);}
+.sb-comply-pct{font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:var(--green);}
+.sb-pbar{height:4px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;}
+.sb-pbar-fill{height:100%;background:linear-gradient(90deg,var(--accent3),var(--green));border-radius:5px;transition:width .6s ease;width:0%;}
+.sb-status{margin:0 10px 8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:9px 11px;}
+.sb-status-lbl{font-size:.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;}
+.sb-status-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:.7rem;color:var(--text2);}
+.sb-status-row:last-child{margin-bottom:0;}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.dot-green{background:var(--green);box-shadow:0 0 4px var(--green);}
+.dot-yellow{background:var(--yellow);box-shadow:0 0 4px var(--yellow);}
+.sb-status-tag{margin-left:auto;font-size:.55rem;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:10px;color:var(--text3);}
+.sb-user{margin:0 10px 10px;background:linear-gradient(135deg,rgba(67,56,202,.2),rgba(108,99,255,.08));border:1px solid rgba(108,99,255,.2);border-radius:9px;padding:9px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;}
+.sb-user-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;color:#fff;flex-shrink:0;}
+.sb-user-name{font-size:.74rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-user-role{font-size:.6rem;color:var(--text3);margin-top:1px;}
+.sb-ver{display:flex;justify-content:space-between;align-items:center;padding:0 10px 12px;}
+.sb-ver span{font-size:.6rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.sb-ver-badge{font-size:.55rem;background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2);padding:2px 6px;border-radius:10px;font-weight:600;}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* HEADER */
+#header{height:56px;background:rgba(5,9,18,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;flex-shrink:0;}
+.hdr-left{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;color:var(--text2);}
+.hdr-right{display:flex;align-items:center;gap:16px;}
+.hdr-pill{background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);padding:4px 12px;border-radius:20px;font-size:.73rem;color:var(--accent2);}
+.hdr-clock{text-align:right;}
+.hdr-time{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:500;color:var(--accent2);}
+.hdr-date{font-size:.65rem;color:var(--text3);}
+
+/* CONTENT */
+#content{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 18px;}
+.page{display:none;}
+.page.active{display:block;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;min-width:0;}
+.card-xs{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px;min-width:0;}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+
+/* STAT CARDS */
+.stat-card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;min-width:0;}
+.stat-card::after{content:'';position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;opacity:.07;}
+.sc-purple::after{background:var(--accent);}
+.sc-green::after{background:var(--green);}
+.sc-yellow::after{background:var(--yellow);}
+.sc-red::after{background:var(--red);}
+.sc-teal::after{background:var(--teal);}
+.stat-lbl{font-size:.66rem;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stat-val{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;line-height:1;}
+.stat-sub{font-size:.68rem;color:var(--text3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* PAGE HEADER */
+.pg-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:3px;}
+.pg-sub{color:var(--text2);font-size:.82rem;margin-bottom:20px;}
+
+/* SECTION HEADER */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sec-title{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:600;}
+.b-low{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25);}
+.b-medium{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.25);}
+.b-high{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.25);}
+.b-critical{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.b-info{background:rgba(6,182,212,.12);color:var(--teal);border:1px solid rgba(6,182,212,.25);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:9px;font-size:.84rem;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s;text-decoration:none;}
+.btn-primary{background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff;}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 16px var(--glow);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.btn-ghost:hover{background:rgba(255,255,255,.05);color:var(--text);}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.btn-danger:hover{background:rgba(239,68,68,.18);}
+.btn-sm{padding:6px 12px;font-size:.78rem;}
+
+/* FORMS */
+.fg{margin-bottom:16px;}
+.fl{font-size:.73rem;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.5px;}
+.fi{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:10px 12px;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.12);}
+.fi.err{border-color:var(--red);}
+select.fi{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='%2394A3B8'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
+select.fi option{background-color:#0E1628;color:#E2E8F0;}
+select.fi option:checked{background-color:#1E2D4A;color:#A78BFA;}
+textarea.fi{resize:vertical;}
+
+/* WELCOME BANNER */
+.welcome{background:linear-gradient(135deg,rgba(67,56,202,.18),rgba(108,99,255,.08));border:1px solid rgba(108,99,255,.18);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+.welcome h2{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;}
+.welcome p{color:var(--text2);font-size:.8rem;margin-top:2px;}
+
+/* CHART CONTAINERS */
+.ch{position:relative;width:100%;height:180px;}
+.ch-lg{position:relative;width:100%;height:240px;}
+
+/* QUESTION ENGINE */
+.q-progress{height:3px;background:rgba(255,255,255,.05);border-radius:3px;margin-bottom:28px;overflow:hidden;}
+.q-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent3),var(--teal));border-radius:3px;transition:width .4s ease;}
+.q-wrap{max-width:680px;margin:0 auto;}
+.q-meta{font-size:.72rem;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.q-text{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:28px;line-height:1.5;color:var(--text);}
+.q-opts{display:flex;flex-direction:column;gap:10px;}
+.q-opt{display:flex;align-items:center;gap:14px;background:var(--card);border:2px solid rgba(255,255,255,.07);border-radius:11px;padding:14px 18px;cursor:pointer;transition:all .2s;}
+.q-opt:hover{border-color:var(--accent);background:rgba(108,99,255,.07);}
+.q-opt.sel{border-color:var(--accent);background:rgba(108,99,255,.14);}
+.q-opt-ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.ico-yes{background:rgba(16,185,129,.12);}
+.ico-partial{background:rgba(245,158,11,.12);}
+.ico-no{background:rgba(239,68,68,.12);}
+.q-opt-title{font-weight:600;font-size:.9rem;}
+.q-opt-desc{font-size:.75rem;color:var(--text2);margin-top:2px;}
+.q-nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;}
+.q-ctr{font-size:.8rem;color:var(--text2);}
+
+/* TABS */
+.tabs{display:flex;gap:3px;background:rgba(255,255,255,.03);padding:3px;border-radius:11px;margin-bottom:18px;overflow-x:auto;}
+.tab-btn{flex:1;min-width:max-content;padding:8px 14px;text-align:center;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--text2);transition:all .2s;white-space:nowrap;}
+.tab-btn.active{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;animation:fadeUp .2s ease;}
+
+/* FINDINGS */
+.finding{background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:flex-start;gap:12px;border-left:3px solid transparent;}
+.finding.f-critical{border-left-color:var(--red);}
+.finding.f-high{border-left-color:var(--orange);}
+.finding.f-medium{border-left-color:var(--yellow);}
+.finding.f-low{border-left-color:var(--green);}
+.finding-body{flex:1;}
+.finding-text{font-size:.84rem;line-height:1.5;color:var(--text);}
+.finding-meta{font-size:.7rem;color:var(--text3);margin-top:4px;}
+
+/* REGULATIONS */
+.reg-item{background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:13px 15px;margin-bottom:9px;border-left:3px solid var(--red);}
+.reg-title{font-size:.86rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+.reg-desc{font-size:.78rem;color:var(--text2);margin-top:5px;line-height:1.55;}
+.reg-refs{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.reg-ref{font-size:.65rem;background:rgba(239,68,68,.1);color:#F87171;border:1px solid rgba(239,68,68,.2);padding:2px 8px;border-radius:20px;}
+
+/* RECS */
+.rec-item{background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:13px 15px;margin-bottom:9px;display:flex;gap:12px;}
+.rec-ico{width:30px;height:30px;border-radius:8px;background:rgba(108,99,255,.12);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.rec-title{font-weight:600;font-size:.87rem;margin-bottom:2px;}
+.rec-text{font-size:.8rem;color:var(--text2);line-height:1.5;}
+
+/* HISTORY */
+.hist-item{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;cursor:pointer;transition:border-color .2s;}
+.hist-item:hover{border-color:var(--accent);}
+
+/* UPLOAD */
+.dropzone{border:2px dashed rgba(108,99,255,.25);border-radius:13px;padding:44px;text-align:center;cursor:pointer;transition:all .2s;}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:rgba(108,99,255,.04);}
+.up-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:14px;}
+.up-card{background:var(--card);border-radius:9px;overflow:hidden;border:1px solid rgba(255,255,255,.06);}
+.up-img{width:100%;height:90px;object-fit:cover;}
+.up-info{padding:7px 8px;font-size:.68rem;color:var(--text2);}
+
+/* HEATMAP */
+.hmap{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:10px 0;}
+.hmap-cell{aspect-ratio:1;border-radius:4px;transition:opacity .2s;cursor:help;}
+.hmap-cell:hover{opacity:.7;}
+
+/* SETTINGS TOGGLE */
+.tog-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;}
+.tog{width:38px;height:21px;background:rgba(255,255,255,.1);border-radius:12px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.tog.on{background:var(--accent);}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.tog.on::after{transform:translateX(17px);}
+
+/* RISK TABLE */
+.rtable{width:100%;border-collapse:collapse;font-size:.82rem;}
+.rtable th{text-align:left;padding:10px 12px;color:var(--text2);font-weight:600;border-bottom:1px solid rgba(255,255,255,.07);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;}
+.rtable td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+.rtable tr:last-child td{border-bottom:none;}
+.rtable tr:hover td{background:rgba(255,255,255,.015);}
+
+/* GAUGE */
+.gauge-num{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;line-height:1;}
+.gauge-sub{font-size:.76rem;color:var(--text2);margin-top:2px;}
+#gauge-canvas{display:block;margin:0 auto;}
+
+/* ERROR MSG */
+.err-msg{color:var(--red);font-size:.78rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18);border-radius:8px;padding:8px 12px;margin-top:10px;}
+
+/* SCORE BREAKDOWN */
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.035);font-size:.76rem;}
+.score-row:last-child{border-bottom:none;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9995;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast-item{background:#0E1628;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 16px;font-size:.82rem;color:var(--text);display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:toastIn .3s ease;min-width:220px;}
+.toast-item.out{animation:toastOut .3s ease forwards;}
+.toast-item.green{border-left:3px solid var(--green);}
+.toast-item.red{border-left:3px solid var(--red);}
+.toast-item.blue{border-left:3px solid var(--accent);}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes toastOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(8px)}}
+#confirm-modal{position:fixed;inset:0;background:rgba(5,9,18,.85);backdrop-filter:blur(10px);z-index:9990;display:none;align-items:center;justify-content:center;}
+#confirm-modal.show{display:flex;}
+.modal-box{background:#0E1628;border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:28px 32px;max-width:380px;width:90%;text-align:center;animation:fadeUp .2s ease;}
+.modal-icon{font-size:2.2rem;margin-bottom:12px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:8px;}
+.modal-msg{font-size:.83rem;color:var(--text2);line-height:1.6;margin-bottom:24px;}
+.modal-btns{display:flex;gap:10px;justify-content:center;}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr));}.g3{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:800px){.g2{grid-template-columns:minmax(0,1fr);}.g3,.g4{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:640px){#sidebar{display:none;}#content{padding:10px;}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <svg class="sp-shield" viewBox="0 0 80 80" fill="none">
+    <path d="M40 4L8 17v20c0 18.778 13.6 36.274 32 40 18.4-3.726 32-21.222 32-40V17L40 4z" fill="url(#sg1)" opacity=".9"/>
+    <path d="M40 4L8 17v20c0 18.778 13.6 36.274 32 40 18.4-3.726 32-21.222 32-40V17L40 4z" stroke="url(#sg2)" stroke-width="1.5" fill="none"/>
+    <path d="M26 40l10 10 18-18" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <defs>
+      <linearGradient id="sg1" x1="8" y1="4" x2="72" y2="76"><stop stop-color="#4338CA"/><stop offset="1" stop-color="#6C63FF"/></linearGradient>
+      <linearGradient id="sg2" x1="8" y1="4" x2="72" y2="76"><stop stop-color="#A78BFA"/><stop offset="1" stop-color="#06B6D4" stop-opacity="0"/></linearGradient>
+    </defs>
+  </svg>
+  <div class="sp-name">AUDITRA</div>
+  <div class="sp-tag">Intelligent IT Audit &amp; Compliance System for Micro Organizations</div>
+  <div class="sp-loader"><div class="sp-fill"></div></div>
+</div>
+
+<!-- PROCESSING -->
+<div id="proc">
+  <div class="proc-ring"></div>
+  <div class="proc-msg" id="proc-msg">Analyzing Audit Data...</div>
+  <div class="proc-sub">Generating Risk Insights &amp; Compliance Report</div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast"></div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Clear All History?</div>
+    <div class="modal-msg">This will permanently delete all audit records and cannot be undone.</div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmClear()">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sb-brand">
+      <svg class="sb-logo-icon" viewBox="0 0 32 32" fill="none">
+        <path d="M16 2L4 7v9c0 8.284 5.373 15.964 12 18C22.627 31.964 28 24.284 28 16V7L16 2z" fill="url(#sl1)"/>
+        <path d="M10 16l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs><linearGradient id="sl1" x1="4" y1="2" x2="28" y2="34"><stop stop-color="#4338CA"/><stop offset="1" stop-color="#6C63FF"/></linearGradient></defs>
+      </svg>
+      <span class="sb-brand-text">AUDITRA</span>
+    </div>
+
+    <div class="sb-nav">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="nav('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4zm8-8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V4zm0 8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </div>
+      <div class="nav-item" id="nav-start-audit" onclick="nav('start-audit')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"/></svg>
+        <span class="nav-label">Start Audit</span>
+      </div>
+      <div class="nav-section">Reports</div>
+      <div class="nav-item" id="nav-results" onclick="nav('results')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+        <span class="nav-label">Audit Results</span>
+      </div>
+      <div class="nav-item" id="nav-risk" onclick="nav('risk')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Risk Register</span>
+      </div>
+      <div class="nav-item" id="nav-compliance" onclick="nav('compliance')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Regulations</span>
+      </div>
+      <div class="nav-item" id="nav-analytics" onclick="nav('analytics')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Analytics</span>
+      </div>
+      <div class="nav-item" id="nav-reports" onclick="nav('reports')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Reports</span>
+      </div>
+      <div class="nav-section">Tools</div>
+      <div class="nav-item" id="nav-upload" onclick="nav('upload')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Evidence Upload</span>
+      </div>
+      <div class="nav-item" id="nav-history" onclick="nav('history')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4l3 3a1 1 0 001.414-1.414L11 9.586V6z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Audit History</span>
+      </div>
+      <div class="nav-item" id="nav-settings" onclick="nav('settings')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+
+    <div class="sb-bottom">
+      <div class="sb-mini-stats">
+        <div class="sb-stat"><div class="sb-stat-val" id="sb-total">0</div><div class="sb-stat-lbl">Audits</div></div>
+        <div class="sb-stat"><div class="sb-stat-val" id="sb-score" style="color:var(--accent2);">—</div><div class="sb-stat-lbl">Score</div></div>
+        <div class="sb-stat"><div class="sb-stat-val" id="sb-comply" style="color:var(--green);">—</div><div class="sb-stat-lbl">Comply</div></div>
+      </div>
+      <div class="sb-comply">
+        <div class="sb-comply-row"><span class="sb-comply-label">Overall Compliance</span><span class="sb-comply-pct" id="sb-comply-pct">—</span></div>
+        <div class="sb-pbar"><div class="sb-pbar-fill" id="sb-pbar-fill"></div></div>
+      </div>
+      <div class="sb-status">
+        <div class="sb-status-lbl">System Status</div>
+        <div class="sb-status-row"><span class="dot dot-green"></span>Audit Engine<span class="sb-status-tag">Active</span></div>
+        <div class="sb-status-row"><span class="dot dot-green"></span>Data Storage<span class="sb-status-tag">Online</span></div>
+        <div class="sb-status-row"><span class="dot dot-yellow"></span>Report Engine<span class="sb-status-tag">Ready</span></div>
+      </div>
+      <div class="sb-user" onclick="nav('settings')">
+        <div class="sb-user-av" id="sb-av">V</div>
+        <div><div class="sb-user-name" id="sb-uname">Vasuntthara D</div><div class="sb-user-role">IT Compliance Officer</div></div>
+      </div>
+      <div class="sb-ver"><span>AUDITRA v2.1</span><span class="sb-ver-badge">STABLE</span></div>
+    </div>
+  </aside>
+
+  <!-- SIDEBAR TOGGLE — always visible, fixed position -->
+  <div id="sb-toggle-btn" onclick="toggleSB()" title="Toggle Sidebar">
+    <svg id="sb-toggle-icon" viewBox="0 0 10 10" fill="none">
+      <path d="M7 2L3 5l4 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <header id="header">
+      <div class="hdr-left" id="hdr-title">Dashboard</div>
+      <div class="hdr-right">
+        <div class="hdr-pill">🛡️ Micro Org Audit</div>
+        <div class="hdr-clock">
+          <div class="hdr-time" id="clock-time">00:00:00</div>
+          <div class="hdr-date" id="clock-date">—</div>
+        </div>
+      </div>
+    </header>
+
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="welcome">
+          <div><h2>Welcome to AUDITRA</h2><p>Intelligent IT Audit & Compliance — Monitor, Assess, Secure.</p></div>
+          <button class="btn btn-primary" onclick="nav('start-audit')">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/></svg>
+            Start New Audit
+          </button>
+        </div>
+        <div class="g4" style="margin-bottom:12px;">
+          <div class="stat-card sc-purple"><div class="stat-lbl">Total Audits</div><div class="stat-val" id="d-total">0</div><div class="stat-sub">All time</div></div>
+          <div class="stat-card sc-teal"><div class="stat-lbl">Last Risk Score</div><div class="stat-val" id="d-score">—</div><div class="stat-sub" id="d-score-org">No audit yet</div></div>
+          <div class="stat-card sc-yellow"><div class="stat-lbl">Risk Level</div><div class="stat-val" style="font-size:.95rem;margin-top:4px;line-height:1.4;" id="d-risk-lv">—</div><div class="stat-sub">Last audit</div></div>
+          <div class="stat-card sc-green"><div class="stat-lbl">Compliance %</div><div class="stat-val" id="d-comply-pct">—</div><div class="stat-sub">Yes answers</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px;">
+          <div class="card"><div class="sec-hd" style="margin-bottom:8px;"><span class="sec-title">Risk Distribution</span></div><div class="ch"><canvas id="d-pie"></canvas></div></div>
+          <div class="card"><div class="sec-hd" style="margin-bottom:8px;"><span class="sec-title">Score Trend</span></div><div class="ch"><canvas id="d-line"></canvas></div></div>
+          <div class="card"><div class="sec-hd" style="margin-bottom:8px;"><span class="sec-title">Audit Activity</span></div><div class="ch"><canvas id="d-bar"></canvas></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+          <div class="card">
+            <div class="sec-hd"><span class="sec-title">Recent Audits</span><button class="btn btn-ghost btn-sm" onclick="nav('history')">View All</button></div>
+            <div id="d-recent"><div style="color:var(--text3);font-size:.82rem;padding:10px 0;">No audits yet. Start your first audit!</div></div>
+          </div>
+          <div class="card">
+            <div class="sec-hd" style="margin-bottom:10px;"><span class="sec-title">Quick Security Tips</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="rec-item"><div class="rec-ico">🔐</div><div><div class="rec-title">Password Hygiene</div><div class="rec-text">Use strong, unique passwords (min 12 chars) for all systems.</div></div></div>
+              <div class="rec-item"><div class="rec-ico">🔄</div><div><div class="rec-title">Regular Backups</div><div class="rec-text">Schedule automated daily backups of critical data (3-2-1 rule).</div></div></div>
+              <div class="rec-item"><div class="rec-ico">🛡️</div><div><div class="rec-title">Antivirus</div><div class="rec-text">Ensure all endpoints have up-to-date antivirus protection.</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- START AUDIT -->
+      <div class="page" id="page-start-audit">
+        <div class="pg-title">Start New Audit</div>
+        <div class="pg-sub">Fill in organization details to begin the IT compliance assessment</div>
+        <div class="g2" style="margin-bottom:14px;">
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:14px;">🏢 Organization Details</div>
+            <div class="fg"><label class="fl">Organization Name *</label><input class="fi" id="f-org" placeholder="e.g. Amirthaa Kids Playschool"/></div>
+            <div class="fg"><label class="fl">Organization Type</label>
+              <select class="fi" id="f-type"><option value="">Select type...</option><option>Playschool / Kindergarten</option><option>Primary School</option><option>Secondary School</option><option>College / University</option><option>NGO / Non-profit</option><option>Small Business</option><option>Healthcare Clinic</option><option>Other</option></select>
+            </div>
+            <div class="fg"><label class="fl">Number of Staff</label><input class="fi" id="f-staff" type="number" placeholder="e.g. 10" min="1"/></div>
+            <div class="fg"><label class="fl">Number of Devices / Computers</label><input class="fi" id="f-devices" type="number" placeholder="e.g. 5" min="0"/></div>
+          </div>
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:14px;">📋 Auditor Details</div>
+            <div class="fg"><label class="fl">Auditor Name *</label><input class="fi" id="f-aud" placeholder="e.g. Vasuntthara D"/></div>
+            <div class="fg"><label class="fl">Auditor Designation</label><input class="fi" id="f-desig" placeholder="e.g. IT Compliance Officer"/></div>
+            <div class="fg"><label class="fl">Location *</label><input class="fi" id="f-loc" placeholder="e.g. Karaikudi, Tamil Nadu"/></div>
+            <div class="fg"><label class="fl">Audit Date *</label><input class="fi" id="f-date" type="date"/></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="sec-title" style="margin-bottom:12px;">📝 Additional Context</div>
+          <div class="g2">
+            <div class="fg"><label class="fl">Primary IT Concern</label>
+              <select class="fi" id="f-concern"><option value="">Select...</option><option>Data Privacy & Protection</option><option>Network Security</option><option>Physical Security</option><option>Compliance with Regulations</option><option>Backup & Recovery</option><option>Access Control</option></select>
+            </div>
+            <div class="fg"><label class="fl">Previous Audit Done?</label>
+              <select class="fi" id="f-prev"><option value="No">No – First audit</option><option value="Yes">Yes – Had a previous audit</option></select>
+            </div>
+          </div>
+          <div class="fg"><label class="fl">Notes / Scope (optional)</label><textarea class="fi" id="f-notes" rows="3" placeholder="Describe focus areas, known issues, special requirements..."></textarea></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="begin-btn" onclick="beginAudit()">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"/></svg>
+            Begin Audit
+          </button>
+          <button class="btn btn-ghost" onclick="fillDemo()">📂 Fill Demo Data</button>
+          <span style="font-size:.75rem;color:var(--text3);">* Required fields</span>
+        </div>
+        <div id="form-err" style="display:none;" class="err-msg"></div>
+      </div>
+
+      <!-- QUESTION ENGINE -->
+      <div class="page" id="page-questions">
+        <div class="q-progress"><div class="q-progress-fill" id="q-prog-fill"></div></div>
+        <div class="q-wrap">
+          <div class="q-meta" id="q-meta">Question 1 of 15 – Category</div>
+          <div class="q-text" id="q-text">Loading...</div>
+          <div class="q-opts" id="q-opts"></div>
+          <div class="q-nav">
+            <button class="btn btn-ghost" id="q-prev" onclick="prevQ()" disabled>← Previous</button>
+            <div class="q-ctr" id="q-ctr">0 of 15 answered</div>
+            <button class="btn btn-primary" id="q-next" onclick="nextQ()" disabled>Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="page" id="page-results">
+        <div class="pg-title">Audit Results</div>
+        <div class="pg-sub" id="r-sub">Complete audit overview and compliance assessment</div>
+        <div class="tabs" id="result-tabs">
+          <div class="tab-btn active" onclick="switchTab(this,'rt-findings')">📌 Findings</div>
+          <div class="tab-btn" onclick="switchTab(this,'rt-score')">📊 Risk Score</div>
+          <div class="tab-btn" onclick="switchTab(this,'rt-compliance')">⚖️ Regulations</div>
+          <div class="tab-btn" onclick="switchTab(this,'rt-visuals')">📈 Analytics</div>
+          <div class="tab-btn" onclick="switchTab(this,'rt-recs')">💡 Recommendations</div>
+        </div>
+        <!-- Findings -->
+        <div class="tab-pane active" id="rt-findings">
+          <div class="g4" style="margin-bottom:16px;">
+            <div class="stat-card"><div class="stat-lbl">Total Questions</div><div class="stat-val">15</div></div>
+            <div class="stat-card"><div class="stat-lbl">Critical Issues</div><div class="stat-val" id="r-no" style="color:var(--red);">0</div></div>
+            <div class="stat-card"><div class="stat-lbl">Partial</div><div class="stat-val" id="r-partial" style="color:var(--yellow);">0</div></div>
+            <div class="stat-card"><div class="stat-lbl">Compliant</div><div class="stat-val" id="r-yes" style="color:var(--green);">0</div></div>
+          </div>
+          <div class="card"><div id="findings-list"></div></div>
+        </div>
+        <!-- Risk Score -->
+        <div class="tab-pane" id="rt-score">
+          <div class="g2" style="align-items:start;">
+            <div class="card" style="text-align:center;">
+              <div class="sec-title" style="margin-bottom:14px;">Risk Score Gauge</div>
+              <div style="position:relative;width:220px;height:120px;margin:0 auto;">
+                <canvas id="gauge-canvas" width="220" height="120"></canvas>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="gauge-num" id="gauge-num">0</div>
+                <div class="gauge-sub">out of 100</div>
+                <div style="margin-top:10px;" id="gauge-badge"></div>
+              </div>
+              <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
+                <div style="font-size:.7rem;color:var(--text2);margin-bottom:8px;text-align:left;font-weight:600;">Risk Zones</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;"><div style="width:10px;height:10px;border-radius:3px;background:var(--green);flex-shrink:0;"></div><span style="color:var(--text2);">Low Risk</span><span style="margin-left:auto;color:var(--text3);">0 – 30</span></div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;"><div style="width:10px;height:10px;border-radius:3px;background:var(--yellow);flex-shrink:0;"></div><span style="color:var(--text2);">Medium Risk</span><span style="margin-left:auto;color:var(--text3);">31 – 50</span></div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;"><div style="width:10px;height:10px;border-radius:3px;background:var(--orange);flex-shrink:0;"></div><span style="color:var(--text2);">High Risk</span><span style="margin-left:auto;color:var(--text3);">51 – 75</span></div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;"><div style="width:10px;height:10px;border-radius:3px;background:var(--red);flex-shrink:0;"></div><span style="color:var(--text2);">Critical Risk</span><span style="margin-left:auto;color:var(--text3);">76 – 100</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="sec-title" style="margin-bottom:10px;">Score Breakdown</div>
+              <div id="score-breakdown" style="overflow-y:auto;max-height:360px;"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Regulations -->
+        <div class="tab-pane" id="rt-compliance">
+          <div class="card" style="margin-bottom:14px;background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.15);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <span style="font-size:1.2rem;">⚖️</span>
+              <span class="sec-title" style="color:var(--red);">Potential Regulation Violations Detected</span>
+            </div>
+            <div style="font-size:.8rem;color:var(--text2);">Based on your audit responses, the following regulations, standards, and compliance frameworks may have been violated. This is indicative — consult a legal or compliance expert for formal assessment.</div>
+          </div>
+          <div id="reg-list"><div style="color:var(--text3);padding:20px;text-align:center;">Complete an audit to see regulation analysis.</div></div>
+        </div>
+        <!-- Visuals -->
+        <div class="tab-pane" id="rt-visuals">
+          <div class="g2" style="margin-bottom:14px;">
+            <div class="card"><div class="sec-title" style="margin-bottom:10px;">Answer Distribution (Pie)</div><div class="ch"><canvas id="r-pie"></canvas></div></div>
+            <div class="card"><div class="sec-title" style="margin-bottom:10px;">Category Risk (Bar)</div><div class="ch"><canvas id="r-bar"></canvas></div></div>
+          </div>
+          <div class="g2" style="margin-bottom:14px;">
+            <div class="card"><div class="sec-title" style="margin-bottom:10px;">Risk Trend Simulation (Line)</div><div class="ch"><canvas id="r-line"></canvas></div></div>
+            <div class="card"><div class="sec-title" style="margin-bottom:10px;">Compliance Donut</div><div class="ch"><canvas id="r-donut"></canvas></div></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="sec-title" style="margin-bottom:10px;">Security Radar</div><div class="ch-lg"><canvas id="r-radar"></canvas></div></div>
+            <div class="card"><div class="sec-title" style="margin-bottom:10px;">Risk Heatmap</div><div id="heatmap-wrap" style="padding:4px 0;"></div></div>
+          </div>
+        </div>
+        <!-- Recommendations -->
+        <div class="tab-pane" id="rt-recs">
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:4px;">💡 Smart Recommendations</div>
+            <div style="font-size:.78rem;color:var(--text2);margin-bottom:14px;">Generated based on audit responses and identified security gaps.</div>
+            <div id="recs-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISK REGISTER -->
+      <div class="page" id="page-risk">
+        <div class="pg-title">Risk Register</div>
+        <div class="pg-sub">Centralized view of all identified risks from the latest audit</div>
+        <div class="card">
+          <table class="rtable">
+            <thead><tr><th>#</th><th>Risk Description</th><th>Category</th><th>Severity</th><th>Regulation Impact</th><th>Status</th></tr></thead>
+            <tbody id="risk-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px;">Complete an audit to populate the risk register.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COMPLIANCE / REGULATIONS PAGE -->
+      <div class="page" id="page-compliance">
+        <div class="pg-title">Regulation & Compliance Reference</div>
+        <div class="pg-sub">Key frameworks applicable to micro-organizations in India and globally</div>
+        <div class="g2">
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:12px;">📋 Applicable Frameworks</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="reg-item" style="border-left-color:var(--teal);">
+                <div class="reg-title">🇮🇳 DPDP Act 2023 (India)</div>
+                <div class="reg-desc">Digital Personal Data Protection Act – India's primary data privacy law. Requires explicit consent for processing personal data, data minimization, and breach notification.</div>
+                <div class="reg-refs"><span class="reg-ref" style="background:rgba(6,182,212,.1);color:var(--teal);border-color:rgba(6,182,212,.2);">Section 4</span><span class="reg-ref" style="background:rgba(6,182,212,.1);color:var(--teal);border-color:rgba(6,182,212,.2);">Section 8</span><span class="reg-ref" style="background:rgba(6,182,212,.1);color:var(--teal);border-color:rgba(6,182,212,.2);">Section 9</span></div>
+              </div>
+              <div class="reg-item" style="border-left-color:var(--accent2);">
+                <div class="reg-title">🇪🇺 GDPR (EU/International)</div>
+                <div class="reg-desc">General Data Protection Regulation – If processing data of EU residents. Requires lawful basis for processing, data subject rights, DPA notification within 72 hours.</div>
+                <div class="reg-refs"><span class="reg-ref">Article 5</span><span class="reg-ref">Article 25</span><span class="reg-ref">Article 32</span><span class="reg-ref">Article 33</span></div>
+              </div>
+              <div class="reg-item" style="border-left-color:var(--yellow);">
+                <div class="reg-title">🔒 ISO/IEC 27001:2022</div>
+                <div class="reg-desc">International standard for Information Security Management Systems (ISMS). Covers risk assessment, access control, cryptography, physical security, and incident management.</div>
+                <div class="reg-refs"><span class="reg-ref" style="background:rgba(245,158,11,.1);color:var(--yellow);border-color:rgba(245,158,11,.2);">Clause 6.1</span><span class="reg-ref" style="background:rgba(245,158,11,.1);color:var(--yellow);border-color:rgba(245,158,11,.2);">A.8</span><span class="reg-ref" style="background:rgba(245,158,11,.1);color:var(--yellow);border-color:rgba(245,158,11,.2);">A.9</span></div>
+              </div>
+              <div class="reg-item" style="border-left-color:var(--green);">
+                <div class="reg-title">📜 IT Act 2000 + Amendment 2008 (India)</div>
+                <div class="reg-desc">India's primary cybersecurity legislation. Section 43A requires reasonable security practices. Section 66 covers computer-related offenses. CERT-In rules apply.</div>
+                <div class="reg-refs"><span class="reg-ref" style="background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2);">Section 43A</span><span class="reg-ref" style="background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2);">Section 66</span><span class="reg-ref" style="background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2);">Rule 3</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:12px;">🏫 Sector-Specific (Education)</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="reg-item" style="border-left-color:var(--orange);">
+                <div class="reg-title">📚 UDISE+ Data Guidelines</div>
+                <div class="reg-desc">Ministry of Education guidelines for protecting student data collected under UDISE+. Requires secure storage, restricted access, and data accuracy.</div>
+                <div class="reg-refs"><span class="reg-ref" style="background:rgba(249,115,22,.1);color:var(--orange);border-color:rgba(249,115,22,.2);">Data Protection</span><span class="reg-ref" style="background:rgba(249,115,22,.1);color:var(--orange);border-color:rgba(249,115,22,.2);">Access Control</span></div>
+              </div>
+              <div class="reg-item" style="border-left-color:var(--accent2);">
+                <div class="reg-title">🛡️ NIST Cybersecurity Framework</div>
+                <div class="reg-desc">NIST CSF 2.0 – Identify, Protect, Detect, Respond, Recover. Widely adopted global standard for managing cybersecurity risk across all organization sizes.</div>
+                <div class="reg-refs"><span class="reg-ref">Identify</span><span class="reg-ref">Protect</span><span class="reg-ref">Detect</span><span class="reg-ref">Respond</span></div>
+              </div>
+              <div class="reg-item" style="border-left-color:var(--teal);">
+                <div class="reg-title">☁️ CERT-In Guidelines 2022 (India)</div>
+                <div class="reg-desc">CERT-In mandates incident reporting within 6 hours, maintain logs for 180 days, mandatory cybersecurity drills, and vulnerability management for all organizations.</div>
+                <div class="reg-refs"><span class="reg-ref" style="background:rgba(6,182,212,.1);color:var(--teal);border-color:rgba(6,182,212,.2);">Incident Report</span><span class="reg-ref" style="background:rgba(6,182,212,.1);color:var(--teal);border-color:rgba(6,182,212,.2);">Log Retention</span></div>
+              </div>
+              <div class="reg-item" style="border-left-color:var(--green);">
+                <div class="reg-title">🔐 PCI-DSS (if payments handled)</div>
+                <div class="reg-desc">Payment Card Industry Data Security Standard – If the organization processes any online payments. Requires encrypted data transmission, access controls, and regular audits.</div>
+                <div class="reg-refs"><span class="reg-ref" style="background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2);">Req. 3</span><span class="reg-ref" style="background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2);">Req. 7</span><span class="reg-ref" style="background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.2);">Req. 12</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="page" id="page-analytics">
+        <div class="pg-title">Visual Analytics</div>
+        <div class="pg-sub">Comprehensive charts and compliance visualizations</div>
+        <div class="g2" style="margin-bottom:14px;">
+          <div class="card"><div class="sec-title" style="margin-bottom:10px;">Compliance Overview</div><div class="ch-lg"><canvas id="a-pie"></canvas></div></div>
+          <div class="card"><div class="sec-title" style="margin-bottom:10px;">Risk by Category</div><div class="ch-lg"><canvas id="a-bar"></canvas></div></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="sec-title" style="margin-bottom:10px;">Security Radar</div><div class="ch-lg"><canvas id="a-radar"></canvas></div></div>
+          <div class="card"><div class="sec-title" style="margin-bottom:10px;">Risk Trend</div><div class="ch-lg"><canvas id="a-line"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="page" id="page-reports">
+        <div class="pg-title">Reports</div>
+        <div class="pg-sub">Generate and export audit compliance reports</div>
+        <div class="g2">
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:14px;">📄 Generate Report</div>
+            <div class="fg"><label class="fl">Select Audit</label><select class="fi" id="rpt-select" onchange="previewReport()"><option>No audits available</option></select></div>
+            <div class="fg"><label class="fl">Report Type</label><select class="fi"><option>Full Audit Report</option><option>Executive Summary</option><option>Risk Register Only</option><option>Recommendations Only</option><option>Regulation Compliance Report</option></select></div>
+            <div class="fg">
+              <label class="fl">Include Sections</label>
+              <div style="display:flex;flex-direction:column;gap:7px;padding:6px 0;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"/> Cover Page</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"/> Executive Summary</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"/> Findings</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"/> Risk Score</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"/> Regulation Violations</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"/> Recommendations</label>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="genReport()">📥 Generate &amp; Download Report</button>
+          </div>
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:12px;">📋 Report Preview</div>
+            <div id="rpt-preview" style="background:rgba(0,0,0,.3);border-radius:9px;padding:18px;font-size:.78rem;line-height:1.9;color:var(--text2);min-height:320px;">
+              <div style="text-align:center;padding:50px 0;color:var(--text3);">Select an audit and click Generate to preview.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div class="page" id="page-upload">
+        <div class="pg-title">Evidence Upload</div>
+        <div class="pg-sub">Upload geo-tagged images and evidence files for audit documentation</div>
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('file-inp').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+          <div style="font-size:2.2rem;margin-bottom:10px;">📸</div>
+          <div style="font-weight:600;margin-bottom:3px;">Click to Upload or Drag & Drop</div>
+          <div style="color:var(--text3);font-size:.78rem;">JPG, PNG, GIF supported – GPS metadata extracted automatically</div>
+          <input type="file" id="file-inp" multiple accept="image/*" style="display:none" onchange="handleFiles(event)"/>
+        </div>
+        <div class="up-grid" id="up-grid"></div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="page" id="page-history">
+        <div class="pg-title">Audit History</div>
+        <div class="pg-sub">All previously completed audits</div>
+        <div id="history-list"><div class="card" style="text-align:center;padding:40px;color:var(--text3);">No audit history yet.</div></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="pg-title">Settings</div>
+        <div class="pg-sub">Configure AUDITRA preferences and auditor profile</div>
+        <div class="g2">
+          <div>
+            <div class="card" style="margin-bottom:14px;">
+              <div class="sec-title" style="padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">🎨 Appearance</div>
+              <div class="tog-row"><span style="font-size:.85rem;">Dark Mode</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="tog-row"><span style="font-size:.85rem;">Animations</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+            <div class="card">
+              <div class="sec-title" style="padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">🔔 Notifications</div>
+              <div class="tog-row"><span style="font-size:.85rem;">Audit Reminders</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="tog-row"><span style="font-size:.85rem;">Risk Alerts</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="tog-row"><span style="font-size:.85rem;">Regulation Warnings</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:14px;">
+              <div class="sec-title" style="padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">👤 Auditor Profile</div>
+              <div class="fg"><label class="fl">Default Auditor Name</label><input class="fi" id="s-name" value="Vasuntthara D" oninput="updateSBUser()"/></div>
+              <div class="fg"><label class="fl">Default Location</label><input class="fi" value="Karaikudi, Tamil Nadu"/></div>
+              <div class="fg"><label class="fl">Organization</label><input class="fi" value="AUDITRA Compliance Dept."/></div>
+              <button class="btn btn-primary" style="width:100%;justify-content:center;">Save Profile</button>
+            </div>
+            <div class="card">
+              <div class="sec-title" style="padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">🗂️ Data Management</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn btn-ghost" style="justify-content:center;" onclick="exportData()">📤 Export All Data (JSON)</button>
+                <button class="btn btn-ghost" style="justify-content:center;">📥 Import Audit Data</button>
+                <button class="btn btn-danger" style="justify-content:center;" onclick="clearAll()">🗑️ Clear All History</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
+const QUESTIONS = [
+  {text:"Do you store student/client data digitally?", cat:"Data Management"},
+  {text:"Is all stored data password protected?", cat:"Data Security"},
+  {text:"Are system passwords changed regularly (every 90 days)?", cat:"Password Policy"},
+  {text:"Is antivirus software installed and up-to-date on all devices?", cat:"Endpoint Security"},
+  {text:"Are operating systems and software regularly updated/patched?", cat:"Patch Management"},
+  {text:"Do you take regular automated backups of important data?", cat:"Backup & Recovery"},
+  {text:"Is system/data access restricted to authorized staff only?", cat:"Access Control"},
+  {text:"Do you use only licensed/genuine software on all devices?", cat:"Software Compliance"},
+  {text:"Is the office WiFi secured with a strong WPA2/WPA3 password?", cat:"Network Security"},
+  {text:"Is CCTV footage access restricted and stored securely?", cat:"Physical Security"},
+  {text:"Are USB / removable devices controlled or restricted?", cat:"Device Control"},
+  {text:"Is sensitive data shared securely (not via WhatsApp/personal email)?", cat:"Data Sharing"},
+  {text:"Is sensitive/personal data encrypted at rest and in transit?", cat:"Data Encryption"},
+  {text:"Is there a documented incident response/breach plan?", cat:"Incident Response"},
+  {text:"Are devices automatically locked after inactivity?", cat:"Endpoint Security"},
+];
+
+// Regulation violation mapping: question index → violations if answer is No/Partial
+const REG_MAP = {
+  0: [{name:"DPDP Act 2023 (India)", clause:"Section 4 – Lawful Processing", severity:"high", desc:"Storing personal data without awareness of legal obligations under DPDP.", refs:["Section 4","Section 5"]},
+      {name:"IT Act 2000 (India)", clause:"Section 43A – Reasonable Security Practices", severity:"high", desc:"Handling personal data without a documented data management framework.", refs:["Section 43A","Rule 3 SPDI"]}],
+  1: [{name:"DPDP Act 2023 (India)", clause:"Section 8 – Obligations of Data Fiduciary", severity:"critical", desc:"Unprotected personal data violates data security obligations.", refs:["Section 8(3)","Section 9"]},
+      {name:"ISO/IEC 27001:2022", clause:"A.8.1 – User Endpoint Devices", severity:"high", desc:"Unprotected data storage violates asset management requirements.", refs:["Control A.8.1","Control A.5.12"]},
+      {name:"IT Act 2000 (India)", clause:"Section 43A", severity:"critical", desc:"No password protection constitutes failure to implement reasonable security practices.", refs:["Section 43A","SPDI Rules 2011"]}],
+  2: [{name:"ISO/IEC 27001:2022", clause:"A.9.4 – System & Application Access Control", severity:"medium", desc:"Infrequent password changes increase risk of unauthorized access.", refs:["Control A.9.4.3"]},
+      {name:"NIST CSF 2.0", clause:"PR.AC – Identity Management", severity:"medium", desc:"Failure to rotate credentials violates identity management best practices.", refs:["PR.AC-1","PR.AC-3"]}],
+  3: [{name:"ISO/IEC 27001:2022", clause:"A.8.8 – Management of Technical Vulnerabilities", severity:"high", desc:"Missing antivirus exposes endpoints to malware and ransomware attacks.", refs:["Control A.8.8","Control A.12.2.1"]},
+      {name:"NIST CSF 2.0", clause:"PR.DS – Data Security", severity:"high", desc:"Unprotected endpoints violate data security protection requirements.", refs:["PR.DS-1","PR.DS-6"]},
+      {name:"CERT-In Guidelines 2022", clause:"Incident Prevention", severity:"high", desc:"Lack of endpoint protection violates CERT-In security posture requirements.", refs:["Advisory 2022"]}],
+  4: [{name:"ISO/IEC 27001:2022", clause:"A.8.8 – Technical Vulnerability Management", severity:"high", desc:"Unpatched systems are a primary attack vector and ISO violation.", refs:["Control A.8.8"]},
+      {name:"CERT-In Guidelines 2022", clause:"Vulnerability Management", severity:"critical", desc:"CERT-In mandates timely patching of critical vulnerabilities.", refs:["CERT-In Directions 2022"]}],
+  5: [{name:"DPDP Act 2023 (India)", clause:"Section 8(6) – Data Accuracy & Integrity", severity:"critical", desc:"No backup plan risks permanent loss of personal data, violating data integrity obligations.", refs:["Section 8(6)"]},
+      {name:"ISO/IEC 27001:2022", clause:"A.8.13 – Information Backup", severity:"high", desc:"Absence of backup policy directly violates ISO 27001 backup requirements.", refs:["Control A.8.13"]},
+      {name:"IT Act 2000 (India)", clause:"Section 43A", severity:"high", desc:"No backup constitutes failure to implement reasonable security practices.", refs:["Section 43A"]}],
+  6: [{name:"DPDP Act 2023 (India)", clause:"Section 8 – Purpose Limitation & Access", severity:"critical", desc:"Unrestricted access to personal data violates data fiduciary obligations.", refs:["Section 8(3)","Section 9"]},
+      {name:"ISO/IEC 27001:2022", clause:"A.9 – Access Control", severity:"critical", desc:"Lack of access restriction is a critical ISO 27001 access control failure.", refs:["Control A.9.1","Control A.9.2","Control A.9.4"]},
+      {name:"GDPR", clause:"Article 25 – Data Protection by Design", severity:"high", desc:"Unrestricted access violates principle of data protection by design and default.", refs:["Article 25","Article 32"]}],
+  7: [{name:"IT Act 2000 (India)", clause:"Section 65 – Tampering with Computer Source Code", severity:"high", desc:"Using unlicensed software creates legal liability and security risks.", refs:["Section 65","Section 43"]},
+      {name:"ISO/IEC 27001:2022", clause:"A.5.32 – Intellectual Property Rights", severity:"medium", desc:"Unlicensed software violates IPR controls required under ISO 27001.", refs:["Control A.5.32"]}],
+  8: [{name:"ISO/IEC 27001:2022", clause:"A.8.20 – Network Controls", severity:"high", desc:"Weak WiFi security exposes the entire network to unauthorized access.", refs:["Control A.8.20","Control A.8.21"]},
+      {name:"NIST CSF 2.0", clause:"PR.AC – Network Access Management", severity:"high", desc:"Unsecured network violates access management protection requirements.", refs:["PR.AC-5","PR.MA-2"]},
+      {name:"CERT-In Guidelines 2022", clause:"Network Security", severity:"high", desc:"CERT-In requires organizations to secure all network entry points.", refs:["CERT-In 2022 Directions"]}],
+  9: [{name:"ISO/IEC 27001:2022", clause:"A.7 – Physical & Environmental Controls", severity:"medium", desc:"Unsecured CCTV access violates physical security access controls.", refs:["Control A.7.1","Control A.7.4"]},
+      {name:"DPDP Act 2023 (India)", clause:"Section 4 – Lawful Recording", severity:"medium", desc:"CCTV footage of individuals is personal data and must be protected.", refs:["Section 4","Section 8"]}],
+  10:[{name:"ISO/IEC 27001:2022", clause:"A.8.12 – Data Leakage Prevention", severity:"medium", desc:"Uncontrolled USB devices are a primary data exfiltration vector.", refs:["Control A.8.12","Control A.8.11"]},
+      {name:"NIST CSF 2.0", clause:"PR.DS – Data Security", severity:"medium", desc:"Uncontrolled removable media violates data security protection standards.", refs:["PR.DS-5"]}],
+  11:[{name:"DPDP Act 2023 (India)", clause:"Section 8(3) – Data Confidentiality", severity:"critical", desc:"Sharing personal data via WhatsApp or insecure channels violates confidentiality obligations.", refs:["Section 8(3)","Section 4"]},
+      {name:"GDPR", clause:"Article 32 – Security of Processing", severity:"critical", desc:"Insecure data transmission violates the security of processing requirement.", refs:["Article 32"]},
+      {name:"IT Act 2000 (India)", clause:"Section 43A – SPDI", severity:"high", desc:"Insecure transmission of sensitive personal data is an SPDI rules violation.", refs:["SPDI Rules 2011","Section 43A"]}],
+  12:[{name:"DPDP Act 2023 (India)", clause:"Section 8(3) – Security Safeguards", severity:"critical", desc:"Unencrypted personal data is a direct violation of data security obligations.", refs:["Section 8(3)","Section 9"]},
+      {name:"GDPR", clause:"Article 32 – Encryption", severity:"critical", desc:"GDPR explicitly requires encryption as an appropriate technical measure.", refs:["Article 32(1)(a)"]},
+      {name:"ISO/IEC 27001:2022", clause:"A.8.24 – Use of Cryptography", severity:"high", desc:"Absence of encryption violates the cryptography control requirement.", refs:["Control A.8.24"]},
+      {name:"IT Act 2000 (India)", clause:"Section 43A", severity:"high", desc:"No encryption of sensitive data violates reasonable security practices.", refs:["Section 43A","SPDI Rules 2011"]}],
+  13:[{name:"CERT-In Guidelines 2022", clause:"Mandatory Incident Reporting", severity:"critical", desc:"CERT-In mandates reporting cyber incidents within 6 hours. No IRP = no ability to comply.", refs:["CERT-In Directions 2022"]},
+      {name:"ISO/IEC 27001:2022", clause:"A.5.24 – Incident Management", severity:"critical", desc:"ISO 27001 requires documented incident response planning and procedures.", refs:["Control A.5.24","Control A.5.26"]},
+      {name:"DPDP Act 2023 (India)", clause:"Section 8(6) – Breach Notification", severity:"critical", desc:"No IRP means inability to notify Data Protection Board of breaches as required.", refs:["Section 8(6)"]},
+      {name:"NIST CSF 2.0", clause:"RS – Respond Function", severity:"high", desc:"The entire Respond function requires an incident response plan.", refs:["RS.RP","RS.CO"]}],
+  14:[{name:"ISO/IEC 27001:2022", clause:"A.8.1 – User Endpoint Devices", severity:"medium", desc:"Unattended unlocked devices risk unauthorized access to personal data.", refs:["Control A.8.1"]},
+      {name:"NIST CSF 2.0", clause:"PR.AC – Identity Management & Access Control", severity:"medium", desc:"Devices not auto-locking fail the access control protection principle.", refs:["PR.AC-1","PR.AC-4"]}],
+};
+
+const SCORE_MAP = {Yes:0, Partial:1, No:2};
+
+const REC_MAP = {
+  0: "Implement a secure student/client data management system with documented data flows and legal basis for processing.",
+  1: "Enforce strong password policies (min 12 chars, alphanumeric+symbols). Encrypt all stored personal data immediately.",
+  2: "Set up mandatory 90-day password rotation. Use a password manager. Enable MFA where possible.",
+  3: "Deploy reputable endpoint protection (Windows Defender, Malwarebytes, or equivalent) on ALL devices. Schedule weekly scans.",
+  4: "Enable automatic OS and software updates. Review pending patches weekly. Prioritize critical/security patches.",
+  5: "Implement 3-2-1 backup: 3 copies, 2 media types (local + cloud), 1 offsite. Test restores quarterly.",
+  6: "Implement role-based access control. Use strong unique passwords per account. Enable MFA for all staff accounts.",
+  7: "Conduct a full software audit. Remove all unlicensed software. Purchase required licenses or use free/open-source alternatives.",
+  8: "Change WiFi to WPA3 encryption with a 20+ character passphrase. Create a separate guest network. Hide SSID.",
+  9: "Restrict CCTV system access to authorized personnel only. Log all access. Encrypt stored footage. Review retention policy.",
+  10:"Deploy endpoint management to block unauthorized USB devices. Use Group Policy or dedicated DLP tools.",
+  11:"Stop using WhatsApp/personal email for any organizational data. Use encrypted channels: Signal for Business, email with TLS, or secure file-sharing platforms.",
+  12:"Encrypt all sensitive files with AES-256. Use BitLocker (Windows) or FileVault (Mac) for disk encryption. Use TLS 1.3 for all data transmission.",
+  13:"Create a basic Incident Response Plan covering: detection, containment, eradication, recovery, and CERT-In notification within 6 hours of a cybersecurity incident.",
+  14:"Configure all devices to auto-lock after 5 minutes of inactivity. Enforce via OS settings or Group Policy.",
+};
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let currentQ = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let auditInfo = {};
+let history = [];
+let charts = {};
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.classList.add('out');
+    setTimeout(() => splash.remove(), 700);
+  }, 2400);
+  tick();
+  setInterval(tick, 1000);
+  loadHistory();
+  initDashCharts();
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+});
+
+function tick() {
+  const n = new Date();
+  document.getElementById('clock-time').textContent = n.toLocaleTimeString('en-IN', {hour12:false});
+  document.getElementById('clock-date').textContent = n.toLocaleDateString('en-IN', {weekday:'short', day:'2-digit', month:'short', year:'numeric'});
+}
+
+// ══════════════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════════════
+function toggleSB() {
+  const sb = document.getElementById('sidebar');
+  const btn = document.getElementById('sb-toggle-btn');
+  const icon = document.getElementById('sb-toggle-icon');
+  sb.classList.toggle('collapsed');
+  if (sb.classList.contains('collapsed')) {
+    btn.style.left = '51px';
+    icon.style.transform = 'rotate(180deg)';
+  } else {
+    btn.style.left = 'calc(var(--sb-width) - 11px)';
+    icon.style.transform = 'rotate(0deg)';
+  }
+}
+
+function updateSBUser() {
+  const name = document.getElementById('s-name').value.trim();
+  if (name) {
+    document.getElementById('sb-uname').textContent = name;
+    document.getElementById('sb-av').textContent = name.charAt(0).toUpperCase();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+const PAGE_TITLES = {
+  dashboard: 'Dashboard',
+  'start-audit': 'Start New Audit',
+  questions: 'Audit Questions',
+  results: 'Audit Results',
+  risk: 'Risk Register',
+  compliance: 'Regulations & Compliance',
+  analytics: 'Visual Analytics',
+  reports: 'Reports',
+  upload: 'Evidence Upload',
+  history: 'Audit History',
+  settings: 'Settings',
+};
+
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('hdr-title').textContent = PAGE_TITLES[page] || page;
+  document.getElementById('content').scrollTop = 0;
+  if (page === 'analytics') initAnaCharts();
+  if (page === 'history') renderHistory();
+  if (page === 'risk') renderRiskRegister();
+  if (page === 'reports') populateReportSelect();
+}
+
+// ══════════════════════════════════════════════════════
+// AUDIT FORM
+// ══════════════════════════════════════════════════════
+function fillDemo() {
+  document.getElementById('f-org').value = 'Amirthaa Kids Playschool';
+  document.getElementById('f-type').value = 'Playschool / Kindergarten';
+  document.getElementById('f-staff').value = '8';
+  document.getElementById('f-devices').value = '4';
+  document.getElementById('f-aud').value = 'Vasuntthara D';
+  document.getElementById('f-desig').value = 'IT Compliance Officer';
+  document.getElementById('f-loc').value = 'Karaikudi, Tamil Nadu';
+  document.getElementById('f-date').value = '2026-03-20';
+  document.getElementById('f-concern').value = 'Data Privacy & Protection';
+  document.getElementById('f-prev').value = 'No';
+  document.getElementById('f-notes').value = 'First IT audit for this playschool. Focus on data security, device management and regulatory compliance.';
+}
+
+function beginAudit() {
+  const reqFields = [
+    {id:'f-org', label:'Organization Name'},
+    {id:'f-aud', label:'Auditor Name'},
+    {id:'f-loc', label:'Location'},
+    {id:'f-date', label:'Audit Date'},
+  ];
+  let errors = [];
+  reqFields.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (!el.value.trim()) {
+      el.classList.add('err');
+      errors.push(f.label);
+    } else {
+      el.classList.remove('err');
+    }
+  });
+  const errDiv = document.getElementById('form-err');
+  if (errors.length > 0) {
+    errDiv.style.display = 'block';
+    errDiv.textContent = '⚠️ Please fill in: ' + errors.join(', ');
+    return;
+  }
+  errDiv.style.display = 'none';
+  auditInfo = {
+    org: document.getElementById('f-org').value.trim(),
+    orgType: document.getElementById('f-type').value || 'N/A',
+    staff: document.getElementById('f-staff').value || 'N/A',
+    devices: document.getElementById('f-devices').value || 'N/A',
+    auditor: document.getElementById('f-aud').value.trim(),
+    designation: document.getElementById('f-desig').value || 'N/A',
+    location: document.getElementById('f-loc').value.trim(),
+    date: document.getElementById('f-date').value,
+    concern: document.getElementById('f-concern').value || 'N/A',
+    notes: document.getElementById('f-notes').value,
+    prevAudit: document.getElementById('f-prev').value,
+  };
+  answers = new Array(QUESTIONS.length).fill(null);
+  currentQ = 0;
+  renderQ();
+  nav('questions');
+}
+
+// ══════════════════════════════════════════════════════
+// QUESTION ENGINE
+// ══════════════════════════════════════════════════════
+function renderQ() {
+  const q = QUESTIONS[currentQ];
+  const pct = (currentQ / QUESTIONS.length) * 100;
+  document.getElementById('q-prog-fill').style.width = pct + '%';
+  document.getElementById('q-meta').textContent = `Question ${currentQ+1} of ${QUESTIONS.length} — ${q.cat}`;
+  document.getElementById('q-text').textContent = q.text;
+
+  const opts = document.getElementById('q-opts');
+  opts.innerHTML = '';
+  const options = [
+    {val:'Yes', ico:'✅', cls:'ico-yes', title:'Yes – Fully Compliant', desc:'Requirement is fully met and implemented'},
+    {val:'Partial', ico:'⚠️', cls:'ico-partial', title:'Partial – Needs Improvement', desc:'Partially implemented but gaps exist'},
+    {val:'No', ico:'❌', cls:'ico-no', title:'No – Non-Compliant', desc:'Not implemented – immediate action required'},
+  ];
+  options.forEach(o => {
+    const d = document.createElement('div');
+    d.className = 'q-opt' + (answers[currentQ] === o.val ? ' sel' : '');
+    d.innerHTML = `<div class="q-opt-ico ${o.cls}">${o.ico}</div><div><div class="q-opt-title">${o.title}</div><div class="q-opt-desc">${o.desc}</div></div>`;
+    d.onclick = () => selectAnswer(o.val, d);
+    opts.appendChild(d);
+  });
+
+  const answered = answers.filter(a => a !== null).length;
+  document.getElementById('q-ctr').textContent = `${answered} of ${QUESTIONS.length} answered`;
+  document.getElementById('q-prev').disabled = currentQ === 0;
+  document.getElementById('q-next').disabled = answers[currentQ] === null;
+  document.getElementById('q-next').textContent = currentQ === QUESTIONS.length - 1 ? 'Finish ✓' : 'Next →';
+}
+
+function selectAnswer(val, el) {
+  answers[currentQ] = val;
+  document.querySelectorAll('.q-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  const answered = answers.filter(a => a !== null).length;
+  document.getElementById('q-ctr').textContent = `${answered} of ${QUESTIONS.length} answered`;
+  document.getElementById('q-next').disabled = false;
+  setTimeout(() => {
+    if (currentQ < QUESTIONS.length - 1) {
+      currentQ++;
+      renderQ();
+    } else {
+      finishAudit();
+    }
+  }, 550);
+}
+
+function nextQ() {
+  if (currentQ < QUESTIONS.length - 1) { currentQ++; renderQ(); }
+  else finishAudit();
+}
+function prevQ() { if (currentQ > 0) { currentQ--; renderQ(); } }
+
+// ══════════════════════════════════════════════════════
+// FINISH & COMPUTE
+// ══════════════════════════════════════════════════════
+function finishAudit() {
+  const proc = document.getElementById('proc');
+  const msgs = ['Analyzing Audit Responses...', 'Calculating Risk Score...', 'Mapping Regulation Violations...', 'Building Recommendations...', 'Finalizing Report...'];
+  let mi = 0;
+  proc.classList.add('on');
+  document.getElementById('proc-msg').textContent = msgs[0];
+  const iv = setInterval(() => {
+    mi++;
+    if (mi < msgs.length) document.getElementById('proc-msg').textContent = msgs[mi];
+  }, 500);
+  setTimeout(() => {
+    clearInterval(iv);
+    proc.classList.remove('on');
+    computeResults();
+    saveHistory();
+    nav('results');
+    updateDash();
+  }, 2600);
+}
+
+function computeResults() {
+  const yes = answers.filter(a => a === 'Yes').length;
+  const partial = answers.filter(a => a === 'Partial').length;
+  const no = answers.filter(a => a === 'No').length;
+  const rawScore = answers.reduce((s, a) => s + SCORE_MAP[a || 'No'], 0);
+  const riskScore = Math.round((rawScore / (QUESTIONS.length * 2)) * 100);
+  const compliance = Math.round((yes / QUESTIONS.length) * 100);
+  window._lastAudit = {yes, partial, no, riskScore, compliance};
+
+  // Sub header
+  document.getElementById('r-sub').textContent = `${auditInfo.org}  |  Auditor: ${auditInfo.auditor}  |  ${fmtDate(auditInfo.date)}  |  ${auditInfo.location}`;
+  document.getElementById('r-no').textContent = no;
+  document.getElementById('r-partial').textContent = partial;
+  document.getElementById('r-yes').textContent = yes;
+
+  // Findings
+  const fEl = document.getElementById('findings-list');
+  const findings = answers.map((a, i) => a !== 'Yes' ? {i, q:QUESTIONS[i], a} : null).filter(Boolean);
+  if (findings.length === 0) {
+    fEl.innerHTML = '<div style="text-align:center;padding:28px;color:var(--green);">🎉 No issues found — organization is fully compliant!</div>';
+  } else {
+    fEl.innerHTML = findings.map((f, idx) => {
+      const sev = f.a === 'No' ? 'critical' : 'medium';
+      const bc = f.a === 'No' ? 'b-critical' : 'b-medium';
+      const regs = (REG_MAP[f.i] || []).map(r => r.name).slice(0, 2).join(', ') || 'No direct violation';
+      return `<div class="finding f-${sev}">
+        <div style="font-size:.75rem;color:var(--text3);min-width:22px;">${idx+1}</div>
+        <div class="finding-body">
+          <div class="finding-text">${f.q.text}</div>
+          <div class="finding-meta">Category: ${f.q.cat} &nbsp;|&nbsp; Response: <strong style="color:${f.a==='No'?'var(--red)':'var(--yellow)'};">${f.a}</strong> &nbsp;|&nbsp; Regulations: ${regs}</div>
+        </div>
+        <span class="badge ${bc}" style="flex-shrink:0;">${f.a === 'No' ? 'Critical' : 'Medium'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Regulation violations
+  buildRegulations();
+
+  // Gauge
+  drawGauge(riskScore);
+  document.getElementById('gauge-num').textContent = riskScore;
+  const {label, cls} = riskLabel(riskScore);
+  document.getElementById('gauge-badge').innerHTML = `<span class="badge ${cls}">${label}</span>`;
+
+  // Score breakdown
+  document.getElementById('score-breakdown').innerHTML = QUESTIONS.map((q, i) => {
+    const a = answers[i] || 'No';
+    const sc = SCORE_MAP[a];
+    const color = a === 'Yes' ? 'var(--green)' : a === 'Partial' ? 'var(--yellow)' : 'var(--red)';
+    return `<div class="score-row"><span style="color:var(--text2);flex:1;padding-right:8px;">${q.text.substring(0, 48)}...</span><span style="color:${color};font-weight:600;font-size:.75rem;">${a} (${sc})</span></div>`;
+  }).join('') + `<div class="score-row" style="border-top:1px solid rgba(255,255,255,.08);padding-top:8px;margin-top:4px;font-weight:700;font-size:.82rem;"><span>Total Risk Score</span><span style="color:var(--accent2);">${riskScore}/100</span></div>`;
+
+  // Recommendations
+  const recs = answers.map((a, i) => a !== 'Yes' ? {q:QUESTIONS[i].text, rec:REC_MAP[i], priority:a==='No'?'🔴 Critical':'🟡 Medium'} : null).filter(Boolean);
+  document.getElementById('recs-list').innerHTML = recs.length === 0
+    ? '<div style="text-align:center;padding:24px;color:var(--green);">✅ No recommendations needed — fully compliant!</div>'
+    : recs.map(r => `<div class="rec-item"><div class="rec-ico">💡</div><div><div class="rec-title">${r.priority} &nbsp;${r.q}</div><div class="rec-text">${r.rec}</div></div></div>`).join('');
+
+  // Charts
+  buildResultCharts(yes, partial, no, riskScore);
+}
+
+function buildRegulations() {
+  const violations = {};
+  answers.forEach((a, i) => {
+    if (a !== 'Yes' && REG_MAP[i]) {
+      REG_MAP[i].forEach(reg => {
+        const key = reg.name;
+        if (!violations[key]) violations[key] = {name:reg.name, items:[], maxSev:'low'};
+        violations[key].items.push({clause:reg.clause, desc:reg.desc, refs:reg.refs, q:QUESTIONS[i].text, ans:a, sev:reg.severity});
+        const sevOrder = {low:0, medium:1, high:2, critical:3};
+        if (sevOrder[reg.severity] > sevOrder[violations[key].maxSev]) violations[key].maxSev = reg.severity;
+      });
+    }
+  });
+
+  const el = document.getElementById('reg-list');
+  const keys = Object.keys(violations);
+  if (keys.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--green);">✅ No regulation violations detected — excellent compliance posture!</div>';
+    return;
+  }
+
+  const sevOrder = {critical:0, high:1, medium:2, low:3};
+  keys.sort((a, b) => sevOrder[violations[a].maxSev] - sevOrder[violations[b].maxSev]);
+
+  el.innerHTML = keys.map(k => {
+    const v = violations[k];
+    const badge = v.maxSev === 'critical' ? 'b-critical' : v.maxSev === 'high' ? 'b-high' : 'b-medium';
+    const items = v.items.map(item => `
+      <div style="background:rgba(255,255,255,.02);border-radius:7px;padding:10px 12px;margin-bottom:7px;border-left:2px solid ${item.ans==='No'?'var(--red)':'var(--yellow)'};">
+        <div style="font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:3px;">${item.clause}</div>
+        <div style="font-size:.76rem;color:var(--text2);margin-bottom:6px;">${item.desc}</div>
+        <div style="font-size:.7rem;color:var(--text3);">Triggered by: <em>"${item.q}"</em> → <strong style="color:${item.ans==='No'?'var(--red)':'var(--yellow)'}">${item.ans}</strong></div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${item.refs.map(r => `<span class="badge b-critical" style="font-size:.6rem;">${r}</span>`).join('')}</div>
+      </div>`).join('');
+    return `<div class="reg-item" style="margin-bottom:12px;">
+      <div class="reg-title" style="justify-content:space-between;">
+        <span>⚠️ ${v.name}</span>
+        <span class="badge ${badge}" style="margin-left:auto;">${v.maxSev.toUpperCase()}</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--text3);margin:6px 0 10px;">${v.items.length} violation(s) detected in this framework</div>
+      ${items}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// GAUGE
+// ══════════════════════════════════════════════════════
+function drawGauge(score) {
+  const canvas = document.getElementById('gauge-canvas');
+  if (!canvas) return;
+  if (charts['gauge']) { charts['gauge'].destroy(); delete charts['gauge']; }
+  // Fix canvas to exactly 220x120 — no responsive scaling
+  canvas.width = 220;
+  canvas.height = 120;
+  canvas.style.width = '220px';
+  canvas.style.height = '120px';
+  const color = score <= 30 ? '#10B981' : score <= 50 ? '#F59E0B' : score <= 75 ? '#F97316' : '#EF4444';
+  charts['gauge'] = new Chart(canvas.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [score, 100 - score],
+        backgroundColor: [color, 'rgba(255,255,255,0.05)'],
+        borderWidth: 0,
+        circumference: 180,
+        rotation: 270,
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      cutout: '68%',
+      responsive: false,
+      maintainAspectRatio: false,
+      animation: { duration: 900, easing: 'easeOutQuart' },
+      layout: { padding: 0 },
+    },
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// RESULT CHARTS
+// ══════════════════════════════════════════════════════
+function buildResultCharts(yes, partial, no, score) {
+  destroyChart('r-pie');
+  charts['r-pie'] = new Chart(document.getElementById('r-pie').getContext('2d'), {
+    type:'pie',
+    data:{labels:['Compliant','Partial','Non-Compliant'],datasets:[{data:[yes,partial,no],backgroundColor:['#10B981','#F59E0B','#EF4444'],borderWidth:0}]},
+    options:{plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',font:{size:10}}}},responsive:true,maintainAspectRatio:false},
+  });
+
+  const catScores = {};
+  QUESTIONS.forEach((q, i) => {
+    const cat = q.cat.split(' ')[0];
+    if (!catScores[cat]) catScores[cat] = {s:0, c:0};
+    catScores[cat].s += SCORE_MAP[answers[i] || 'No'];
+    catScores[cat].c++;
+  });
+  const catLabels = Object.keys(catScores);
+  const catVals = catLabels.map(k => Math.round((catScores[k].s / (catScores[k].c * 2)) * 100));
+
+  destroyChart('r-bar');
+  charts['r-bar'] = new Chart(document.getElementById('r-bar').getContext('2d'), {
+    type:'bar',
+    data:{labels:catLabels,datasets:[{label:'Risk %',data:catVals,backgroundColor:catVals.map(v=>v<=30?'#10B981':v<=50?'#F59E0B':v<=75?'#F97316':'#EF4444'),borderRadius:5}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{max:100,ticks:{color:'#64748B',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748B',font:{size:9}},grid:{display:false}}},responsive:true,maintainAspectRatio:false},
+  });
+
+  destroyChart('r-line');
+  const s = score;
+  charts['r-line'] = new Chart(document.getElementById('r-line').getContext('2d'), {
+    type:'line',
+    data:{labels:['Jan','Feb','Mar','Apr','May','Current'],datasets:[{label:'Risk Score',data:[95,82,74,Math.min(s+20,100),Math.min(s+10,100),s],borderColor:'#6C63FF',backgroundColor:'rgba(108,99,255,.08)',tension:.4,pointBackgroundColor:'#6C63FF',pointRadius:4,fill:true}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#64748B',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748B',font:{size:9}},grid:{display:false}}},responsive:true,maintainAspectRatio:false},
+  });
+
+  destroyChart('r-donut');
+  charts['r-donut'] = new Chart(document.getElementById('r-donut').getContext('2d'), {
+    type:'doughnut',
+    data:{labels:['Yes','Partial','No'],datasets:[{data:[yes,partial,no],backgroundColor:['#10B981','#F59E0B','#EF4444'],borderWidth:0,hoverOffset:5}]},
+    options:{plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',font:{size:10}}}},cutout:'60%',responsive:true,maintainAspectRatio:false},
+  });
+
+  destroyChart('r-radar');
+  const radarLabels = QUESTIONS.map(q => q.cat.split(' ')[0]);
+  const radarData = answers.map(a => 100 - SCORE_MAP[a || 'No'] * 50);
+  charts['r-radar'] = new Chart(document.getElementById('r-radar').getContext('2d'), {
+    type:'radar',
+    data:{labels:radarLabels,datasets:[{label:'Compliance',data:radarData,borderColor:'#6C63FF',backgroundColor:'rgba(108,99,255,.12)',pointBackgroundColor:'#6C63FF',pointRadius:3}]},
+    options:{plugins:{legend:{display:false}},scales:{r:{angleLines:{color:'rgba(255,255,255,.06)'},grid:{color:'rgba(255,255,255,.06)'},pointLabels:{color:'#94A3B8',font:{size:9}},ticks:{display:false},min:0,max:100}},responsive:true,maintainAspectRatio:false},
+  });
+
+  buildHeatmap();
+}
+
+function buildHeatmap() {
+  const wrap = document.getElementById('heatmap-wrap');
+  const cells = QUESTIONS.map((q, i) => {
+    const a = answers[i] || 'No';
+    const color = a === 'Yes' ? '#10B981' : a === 'Partial' ? '#F59E0B' : '#EF4444';
+    const op = a === 'Yes' ? 0.5 : a === 'Partial' ? 0.75 : 1;
+    return `<div class="hmap-cell" style="background:${color};opacity:${op};" title="${q.text}: ${a}"></div>`;
+  });
+  wrap.innerHTML = `<div style="font-size:.7rem;color:var(--text2);margin-bottom:8px;">Each cell = one audit question response</div><div class="hmap">${cells.join('')}</div><div style="display:flex;gap:12px;margin-top:9px;font-size:.7rem;"><span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#10B981;border-radius:2px;display:inline-block;"></span>Compliant</span><span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#F59E0B;border-radius:2px;display:inline-block;"></span>Partial</span><span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#EF4444;border-radius:2px;display:inline-block;"></span>Non-Compliant</span></div>`;
+}
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+// ══════════════════════════════════════════════════════
+// DASHBOARD CHARTS
+// ══════════════════════════════════════════════════════
+function initDashCharts() {
+  destroyChart('d-pie');
+  charts['d-pie'] = new Chart(document.getElementById('d-pie').getContext('2d'), {
+    type:'pie',
+    data:{labels:['Compliant','Partial','Issues'],datasets:[{data:[7,5,3],backgroundColor:['#10B981','#F59E0B','#EF4444'],borderWidth:0}]},
+    options:{plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',font:{size:9}}}},responsive:true,maintainAspectRatio:false},
+  });
+  destroyChart('d-line');
+  charts['d-line'] = new Chart(document.getElementById('d-line').getContext('2d'), {
+    type:'line',
+    data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{data:[80,72,65,58,70,62],borderColor:'#6C63FF',backgroundColor:'rgba(108,99,255,.07)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#6C63FF'}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#64748B',font:{size:8}},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748B',font:{size:8}},grid:{display:false}}},responsive:true,maintainAspectRatio:false},
+  });
+  destroyChart('d-bar');
+  charts['d-bar'] = new Chart(document.getElementById('d-bar').getContext('2d'), {
+    type:'bar',
+    data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{data:[1,0,2,1,3,1],backgroundColor:'rgba(108,99,255,.45)',borderRadius:4}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#64748B',font:{size:8}},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748B',font:{size:8}},grid:{display:false}}},responsive:true,maintainAspectRatio:false},
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// ANALYTICS CHARTS
+// ══════════════════════════════════════════════════════
+let anaInit = false;
+function initAnaCharts() {
+  if (anaInit) return;
+  anaInit = true;
+  const la = window._lastAudit;
+  const yes = la ? la.yes : 7, partial = la ? la.partial : 5, no = la ? la.no : 3;
+  const score = la ? la.riskScore : 55;
+
+  destroyChart('a-pie');
+  charts['a-pie'] = new Chart(document.getElementById('a-pie').getContext('2d'), {
+    type:'pie',
+    data:{labels:['Compliant','Partial','Non-Compliant'],datasets:[{data:[yes,partial,no],backgroundColor:['#10B981','#F59E0B','#EF4444'],borderWidth:0}]},
+    options:{plugins:{legend:{position:'bottom',labels:{color:'#94A3B8'}}},responsive:true,maintainAspectRatio:false},
+  });
+  destroyChart('a-bar');
+  charts['a-bar'] = new Chart(document.getElementById('a-bar').getContext('2d'), {
+    type:'bar',
+    data:{labels:['Data','Passwords','Antivirus','Backup','Access','Network','Physical','Encrypt'],
+      datasets:[{data:[no*15,30,50,20,60,45,30,70],backgroundColor:'#6C63FF',borderRadius:5}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{max:100,ticks:{color:'#64748B'},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748B'},grid:{display:false}}},responsive:true,maintainAspectRatio:false},
+  });
+  destroyChart('a-radar');
+  charts['a-radar'] = new Chart(document.getElementById('a-radar').getContext('2d'), {
+    type:'radar',
+    data:{labels:['Data Security','Passwords','Antivirus','Backup','Access Ctrl','Network','Physical','Encryption'],
+      datasets:[{data:[Math.round((yes/15)*100),70,80,60,55,75,85,50],borderColor:'#6C63FF',backgroundColor:'rgba(108,99,255,.10)',pointBackgroundColor:'#6C63FF'}]},
+    options:{plugins:{legend:{display:false}},scales:{r:{angleLines:{color:'rgba(255,255,255,.06)'},grid:{color:'rgba(255,255,255,.06)'},pointLabels:{color:'#94A3B8',font:{size:10}},ticks:{display:false},min:0,max:100}},responsive:true,maintainAspectRatio:false},
+  });
+  destroyChart('a-line');
+  charts['a-line'] = new Chart(document.getElementById('a-line').getContext('2d'), {
+    type:'line',
+    data:{labels:['Q1','Q2','Q3','Q4','Q5','Current'],datasets:[{data:[90,80,72,65,Math.min(score+8,100),score],borderColor:'#EF4444',backgroundColor:'rgba(239,68,68,.07)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#EF4444'}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#64748B'},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748B'},grid:{display:false}}},responsive:true,maintainAspectRatio:false},
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+function switchTab(btn, paneId) {
+  const parent = btn.closest('.tabs');
+  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const paneParent = parent.nextElementSibling;
+  // Find all sibling tab panes
+  let el = parent.nextElementSibling;
+  while (el) {
+    if (el.classList.contains('tab-pane')) el.classList.remove('active');
+    el = el.nextElementSibling;
+  }
+  document.getElementById(paneId).classList.add('active');
+  if (paneId === 'rt-visuals' && window._lastAudit) {
+    setTimeout(() => { Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} }); }, 100);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════
+function saveHistory() {
+  const la = window._lastAudit;
+  if (!la) return;
+  const entry = {
+    id: Date.now(),
+    org: auditInfo.org, auditor: auditInfo.auditor,
+    date: auditInfo.date, location: auditInfo.location,
+    riskScore: la.riskScore, compliance: la.compliance,
+    yes: la.yes, partial: la.partial, no: la.no,
+    answers: [...answers], auditInfo: {...auditInfo},
+  };
+  history.unshift(entry);
+  try { localStorage.setItem('auditra_v2', JSON.stringify(history)); } catch(e) {}
+}
+
+function loadHistory() {
+  try { const d = localStorage.getItem('auditra_v2'); if (d) history = JSON.parse(d); } catch(e) {}
+  updateDash();
+}
+
+function updateDash() {
+  document.getElementById('sb-total').textContent = history.length;
+  document.getElementById('d-total').textContent = history.length;
+  if (history.length > 0) {
+    const last = history[0];
+    const pct = last.compliance || 0;
+    document.getElementById('sb-score').textContent = last.riskScore;
+    document.getElementById('sb-comply').textContent = pct + '%';
+    document.getElementById('sb-comply-pct').textContent = pct + '%';
+    document.getElementById('sb-pbar-fill').style.width = pct + '%';
+    document.getElementById('d-score').textContent = last.riskScore + '/100';
+    document.getElementById('d-score-org').textContent = last.org;
+    document.getElementById('d-risk-lv').textContent = riskLabel(last.riskScore).label;
+    document.getElementById('d-comply-pct').textContent = pct + '%';
+  }
+  const rl = document.getElementById('d-recent');
+  if (history.length === 0) {
+    rl.innerHTML = '<div style="color:var(--text3);font-size:.8rem;padding:12px 0;">No audits yet.</div>';
+    return;
+  }
+  rl.innerHTML = history.slice(0, 5).map(a => {
+    const {cls} = riskLabel(a.riskScore);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+      <div><div style="font-size:.84rem;font-weight:500;">${a.org}</div><div style="font-size:.7rem;color:var(--text3);">${fmtDate(a.date)} — ${a.auditor}</div></div>
+      <span class="badge ${cls}">${a.riskScore}/100</span>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (history.length === 0) {
+    el.innerHTML = '<div class="card" style="text-align:center;padding:40px;color:var(--text3);">No audit history yet.</div>';
+    return;
+  }
+  el.innerHTML = history.map(a => {
+    const {label, cls} = riskLabel(a.riskScore);
+    return `<div class="hist-item" onclick="openHistory(${a.id})">
+      <div>
+        <div style="font-weight:600;margin-bottom:3px;">${a.org}</div>
+        <div style="font-size:.76rem;color:var(--text2);">📅 ${fmtDate(a.date)} &nbsp;|&nbsp; 👤 ${a.auditor} &nbsp;|&nbsp; 📍 ${a.location}</div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:2px;">✅ Compliant: ${a.yes}/15 &nbsp;|&nbsp; ⚠️ Partial: ${a.partial} &nbsp;|&nbsp; ❌ Issues: ${a.no}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+        <span class="badge ${cls}">${label}</span>
+        <span style="font-size:.75rem;color:var(--text2);">${a.riskScore}/100</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openHistory(id) {
+  const entry = history.find(a => a.id === id);
+  if (!entry) return;
+  auditInfo = {...entry.auditInfo};
+  answers = [...entry.answers];
+  window._lastAudit = {yes:entry.yes, partial:entry.partial, no:entry.no, riskScore:entry.riskScore, compliance:entry.compliance};
+  computeResults();
+  nav('results');
+}
+
+function clearAll() {
+  document.getElementById('confirm-modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('confirm-modal').classList.remove('show');
+}
+function confirmClear() {
+  closeModal();
+
+  // Clear all state
+  history = [];
+  window._lastAudit = null;
+  answers = new Array(QUESTIONS.length).fill(null);
+  auditInfo = {};
+  anaInit = false;
+
+  // Clear localStorage
+  try { localStorage.removeItem('auditra_v2'); } catch(e) {}
+
+  // Reset dashboard
+  updateDash();
+
+  // Reset history page
+  renderHistory();
+
+  // Reset risk register
+  document.getElementById('risk-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px;">Complete an audit to populate the risk register.</td></tr>';
+
+  // Reset results page
+  document.getElementById('r-sub').textContent = 'Complete audit overview and compliance assessment';
+  document.getElementById('r-no').textContent = '0';
+  document.getElementById('r-partial').textContent = '0';
+  document.getElementById('r-yes').textContent = '0';
+  document.getElementById('findings-list').innerHTML = '<div style="text-align:center;padding:28px;color:var(--text3);">No audit data. Start an audit to see findings.</div>';
+  document.getElementById('recs-list').innerHTML = '<div style="text-align:center;padding:28px;color:var(--text3);">No audit data. Start an audit to see recommendations.</div>';
+  document.getElementById('reg-list').innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center;">Complete an audit to see regulation analysis.</div>';
+  document.getElementById('score-breakdown').innerHTML = '';
+  document.getElementById('gauge-num').textContent = '0';
+  document.getElementById('gauge-badge').innerHTML = '';
+  if (charts['gauge']) { charts['gauge'].destroy(); delete charts['gauge']; }
+
+  // Reset reports page
+  document.getElementById('rpt-select').innerHTML = '<option value="">— No audits available —</option>';
+  document.getElementById('rpt-preview').innerHTML = '<div style="text-align:center;padding:50px 0;color:var(--text3);">No audit data available. Complete an audit first.</div>';
+
+  // Reset analytics charts so they reinitialise fresh next visit
+  ['a-pie','a-bar','a-radar','a-line'].forEach(id => destroyChart(id));
+
+  // Reset result charts
+  ['r-pie','r-bar','r-line','r-donut','r-radar'].forEach(id => destroyChart(id));
+  document.getElementById('heatmap-wrap').innerHTML = '';
+
+  // Reinitialise dashboard charts with empty state
+  initDashCharts();
+
+  showToast('All history and reports cleared successfully.', 'red');
+}
+
+// ══════════════════════════════════════════════════════
+// RISK REGISTER
+// ══════════════════════════════════════════════════════
+function renderRiskRegister() {
+  const tb = document.getElementById('risk-tbody');
+  if (!window._lastAudit) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px;">Complete an audit to populate the risk register.</td></tr>';
+    return;
+  }
+  const risks = answers.map((a, i) => a !== 'Yes' ? {q:QUESTIONS[i], ans:a, i} : null).filter(Boolean);
+  if (risks.length === 0) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--green);padding:28px;">No risks found — fully compliant!</td></tr>';
+    return;
+  }
+  tb.innerHTML = risks.map((r, idx) => {
+    const sev = r.ans === 'No' ? 'Critical' : 'Medium';
+    const bc = r.ans === 'No' ? 'b-critical' : 'b-medium';
+    const regs = (REG_MAP[r.i] || []).slice(0, 2).map(reg => `<span class="badge b-critical" style="font-size:.6rem;">${reg.name.split('(')[0].trim()}</span>`).join(' ');
+    return `<tr>
+      <td>${idx+1}</td>
+      <td>${r.q.text}</td>
+      <td><span style="font-size:.78rem;color:var(--text2);">${r.q.cat}</span></td>
+      <td><span class="badge ${bc}">${sev}</span></td>
+      <td style="font-size:.75rem;">${regs || '—'}</td>
+      <td><span style="font-size:.74rem;color:var(--orange);">Open</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// UPLOAD
+// ══════════════════════════════════════════════════════
+function handleFiles(e) { processFiles(e.target.files); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag');
+  processFiles(e.dataTransfer.files);
+}
+function processFiles(files) {
+  const grid = document.getElementById('up-grid');
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const lat = (10 + Math.random() * 5).toFixed(4);
+      const lon = (78 + Math.random() * 3).toFixed(4);
+      const card = document.createElement('div');
+      card.className = 'up-card';
+      card.innerHTML = `<img src="${ev.target.result}" class="up-img"/><div class="up-info"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.name}</div><div>📍 ${lat}°N, ${lon}°E</div><div style="color:var(--text3);">${(file.size/1024).toFixed(1)} KB</div></div>`;
+      grid.appendChild(card);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// REPORT
+// ══════════════════════════════════════════════════════
+function populateReportSelect() {
+  const sel = document.getElementById('rpt-select');
+  if (history.length === 0) {
+    sel.innerHTML = '<option value="">— No audits available —</option>';
+    return;
+  }
+  sel.innerHTML = history.map(a => `<option value="${a.id}">${a.org} — ${fmtDate(a.date)} (Score: ${a.riskScore}/100)</option>`).join('');
+  // Auto-preview on load
+  previewReport();
+}
+
+function previewReport() {
+  const sel = document.getElementById('rpt-select');
+  const id = parseInt(sel.value);
+  const entry = history.find(a => a.id === id) || history[0];
+  if (!entry) {
+    document.getElementById('rpt-preview').innerHTML = '<div style="text-align:center;padding:50px 0;color:var(--text3);">No audit data available. Complete an audit first.</div>';
+    return;
+  }
+  const info = entry.auditInfo || {};
+  const score = entry.riskScore || 0;
+  const yes = entry.yes || 0;
+  const partial = entry.partial || 0;
+  const no = entry.no || 0;
+  const {label} = riskLabel(score);
+  const scoreColor = score<=30?'#10B981':score<=50?'#F59E0B':score<=75?'#F97316':'#EF4444';
+
+  // Collect violations from this entry's answers
+  const entryAnswers = entry.answers || [];
+  const violatedRegs = {};
+  entryAnswers.forEach((a, i) => {
+    if (a !== 'Yes' && REG_MAP[i]) {
+      REG_MAP[i].forEach(reg => {
+        if (!violatedRegs[reg.name]) violatedRegs[reg.name] = [];
+        violatedRegs[reg.name].push(`${reg.clause}`);
+      });
+    }
+  });
+
+  document.getElementById('rpt-preview').innerHTML = `
+  <div style="font-family:'JetBrains Mono',monospace;font-size:.73rem;line-height:2;color:var(--text2);">
+    <div style="text-align:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:12px;">
+      <div style="font-size:.95rem;font-weight:800;color:var(--accent2);letter-spacing:2px;">🛡️ AUDITRA v2.1</div>
+      <div style="font-size:.6rem;color:var(--text3);margin-top:2px;">IT AUDIT & COMPLIANCE REPORT</div>
+    </div>
+    <div style="padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:10px;">
+      <div><strong style="color:var(--text);">Organization:</strong> <span style="color:var(--accent2);">${info.org||'—'}</span></div>
+      <div><strong style="color:var(--text);">Type:</strong> ${info.orgType||'—'} &nbsp;|&nbsp; <strong style="color:var(--text);">Staff:</strong> ${info.staff||'N/A'} &nbsp;|&nbsp; <strong style="color:var(--text);">Devices:</strong> ${info.devices||'N/A'}</div>
+      <div><strong style="color:var(--text);">Auditor:</strong> ${info.auditor||'—'} (${info.designation||'N/A'})</div>
+      <div><strong style="color:var(--text);">Date:</strong> ${fmtDate(info.date)||'—'} &nbsp;|&nbsp; <strong style="color:var(--text);">Location:</strong> ${info.location||'—'}</div>
+    </div>
+    <div style="padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:10px;">
+      <div><strong style="color:var(--text);">Risk Score:</strong> <span style="color:${scoreColor};font-size:.9rem;font-weight:800;">${score}/100</span> — <span style="color:${scoreColor};">${label}</span></div>
+      <div><strong style="color:var(--text);">Compliance Rate:</strong> <span style="color:var(--green);">${Math.round((yes/15)*100)}%</span></div>
+      <div>✅ Compliant: <strong style="color:var(--green);">${yes}</strong> &nbsp; ⚠️ Partial: <strong style="color:var(--yellow);">${partial}</strong> &nbsp; ❌ Non-Compliant: <strong style="color:var(--red);">${no}</strong></div>
+    </div>
+    <div style="padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:10px;">
+      <div style="margin-bottom:6px;"><strong style="color:var(--red);">⚖️ Regulation Violations: ${Object.keys(violatedRegs).length} framework(s)</strong></div>
+      ${Object.keys(violatedRegs).length === 0
+        ? '<div style="color:var(--green);">✅ None detected</div>'
+        : Object.entries(violatedRegs).map(([k,v]) => `<div style="color:var(--text2);">• ${k} <span style="color:var(--red);">(${v.length} clause${v.length>1?'s':''})</span></div>`).join('')}
+    </div>
+    <div>
+      <div style="margin-bottom:6px;"><strong style="color:var(--text);">📌 Top Issues:</strong></div>
+      ${entryAnswers.map((a,i)=>a!=='Yes'?`<div style="color:${a==='No'?'#F87171':'#FCD34D'};">• ${QUESTIONS[i].text} → <strong>${a}</strong></div>`:null).filter(Boolean).slice(0,6).join('')||'<div style="color:var(--green);">No issues found.</div>'}
+    </div>
+    <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);font-size:.6rem;text-align:center;color:var(--text3);">
+      Generated by AUDITRA v2.1 &nbsp;|&nbsp; Confidential &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-IN')}
+    </div>
+  </div>`;
+}
+
+function genReport() {
+  const sel = document.getElementById('rpt-select');
+  const id = parseInt(sel.value);
+  const entry = history.find(a => a.id === id) || history[0];
+
+  if (!entry) {
+    showToast('Please complete an audit first.', 'red');
+    return;
+  }
+
+  const info = entry.auditInfo || {};
+  const score = entry.riskScore || 0;
+  const yes = entry.yes || 0;
+  const partial = entry.partial || 0;
+  const no = entry.no || 0;
+  const {label} = riskLabel(score);
+  const scoreColor = score<=30?'#10B981':score<=50?'#F59E0B':score<=75?'#F97316':'#EF4444';
+  const entryAnswers = entry.answers || [];
+
+  // Collect violations
+  const violatedRegs = {};
+  entryAnswers.forEach((a, i) => {
+    if (a !== 'Yes' && REG_MAP[i]) {
+      REG_MAP[i].forEach(reg => {
+        if (!violatedRegs[reg.name]) violatedRegs[reg.name] = [];
+        violatedRegs[reg.name].push(`${reg.clause}: ${reg.desc}`);
+      });
+    }
+  });
+
+  // Update preview first
+  previewReport();
+
+  // Build full downloadable HTML report
+  const reportHTML = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><title>AUDITRA Report – ${info.org||'Audit'}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;color:#1e293b;padding:30px;}
+.wrap{max-width:860px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08);overflow:hidden;}
+.header{background:linear-gradient(135deg,#0F172A,#1E3A5F);color:#fff;padding:32px 36px;display:flex;justify-content:space-between;align-items:center;}
+.logo{font-size:1.8rem;font-weight:900;letter-spacing:2px;}
+.logo-sub{font-size:.8rem;color:#94A3B8;margin-top:4px;}
+.score-box{text-align:right;}
+.score-val{font-size:2.4rem;font-weight:900;color:${scoreColor};}
+.score-lbl{font-size:.8rem;color:#94A3B8;}
+.body{padding:28px 36px;}
+.section{margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid #E2E8F0;}
+.section:last-child{border-bottom:none;}
+h2{font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:12px;}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.meta-item{background:#f8fafc;border-radius:8px;padding:10px 14px;}
+.meta-label{font-size:.68rem;color:#64748b;text-transform:uppercase;letter-spacing:.5px;}
+.meta-val{font-size:.88rem;font-weight:600;color:#1e293b;margin-top:2px;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.stat-box{border-radius:8px;padding:14px;text-align:center;}
+.stat-yes{background:#ecfdf5;} .stat-partial{background:#fffbeb;} .stat-no{background:#fef2f2;} .stat-score{background:#eff6ff;}
+.stat-num{font-size:1.6rem;font-weight:800;} .stat-lbl{font-size:.68rem;color:#64748b;margin-top:2px;}
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+th{background:#f8fafc;padding:10px 12px;text-align:left;font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #E2E8F0;}
+td{padding:10px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even) td{background:#fafafa;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;}
+.b-critical{background:#fef2f2;color:#dc2626;} .b-medium{background:#fffbeb;color:#d97706;} .b-low{background:#f0fdf4;color:#16a34a;}
+.b-yes{background:#f0fdf4;color:#16a34a;} .b-no{background:#fef2f2;color:#dc2626;} .b-partial{background:#fffbeb;color:#d97706;}
+.reg-block{background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:14px 16px;margin-bottom:10px;border-left:4px solid #dc2626;}
+.reg-name{font-weight:700;font-size:.88rem;color:#1e293b;margin-bottom:6px;}
+.reg-item{font-size:.78rem;color:#475569;margin-bottom:3px;padding-left:12px;}
+.reg-item::before{content:'→ ';}
+.rec-block{background:#f8fafc;border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:4px solid #6C63FF;}
+.rec-q{font-weight:600;font-size:.84rem;margin-bottom:4px;color:#1e293b;}
+.rec-text{font-size:.78rem;color:#475569;}
+.footer{background:#f8fafc;padding:16px 36px;text-align:center;font-size:.72rem;color:#94a3b8;border-top:1px solid #E2E8F0;}
+</style></head><body>
+<div class="wrap">
+  <div class="header">
+    <div><div class="logo">🛡️ AUDITRA</div><div class="logo-sub">IT Audit & Compliance Report v2.1</div></div>
+    <div class="score-box"><div class="score-val">${score}/100</div><div class="score-lbl">${label}</div></div>
+  </div>
+  <div class="body">
+    <div class="section">
+      <h2>📋 Audit Information</h2>
+      <div class="meta-grid">
+        <div class="meta-item"><div class="meta-label">Organization</div><div class="meta-val">${info.org||'—'}</div></div>
+        <div class="meta-item"><div class="meta-label">Type</div><div class="meta-val">${info.orgType||'—'}</div></div>
+        <div class="meta-item"><div class="meta-label">Auditor</div><div class="meta-val">${info.auditor||'—'} (${info.designation||'N/A'})</div></div>
+        <div class="meta-item"><div class="meta-label">Date & Location</div><div class="meta-val">${fmtDate(info.date)||'—'} | ${info.location||'—'}</div></div>
+        <div class="meta-item"><div class="meta-label">Staff Count</div><div class="meta-val">${info.staff||'N/A'}</div></div>
+        <div class="meta-item"><div class="meta-label">Devices</div><div class="meta-val">${info.devices||'N/A'}</div></div>
+        <div class="meta-item"><div class="meta-label">Primary Concern</div><div class="meta-val">${info.concern||'N/A'}</div></div>
+        <div class="meta-item"><div class="meta-label">Previous Audit</div><div class="meta-val">${info.prevAudit||'N/A'}</div></div>
+      </div>
+      ${info.notes?`<div style="background:#f8fafc;border-radius:8px;padding:10px 14px;margin-top:8px;font-size:.82rem;color:#475569;"><strong>Notes:</strong> ${info.notes}</div>`:''}
+    </div>
+    <div class="section">
+      <h2>📊 Results Summary</h2>
+      <div class="stats-row">
+        <div class="stat-box stat-yes"><div class="stat-num" style="color:#16a34a;">${yes}</div><div class="stat-lbl">Compliant</div></div>
+        <div class="stat-box stat-partial"><div class="stat-num" style="color:#d97706;">${partial}</div><div class="stat-lbl">Partial</div></div>
+        <div class="stat-box stat-no"><div class="stat-num" style="color:#dc2626;">${no}</div><div class="stat-lbl">Non-Compliant</div></div>
+        <div class="stat-box stat-score"><div class="stat-num" style="color:${scoreColor};">${Math.round((yes/15)*100)}%</div><div class="stat-lbl">Compliance Rate</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <h2>📌 Detailed Findings</h2>
+      <table>
+        <thead><tr><th>#</th><th>Question</th><th>Category</th><th>Response</th><th>Severity</th></tr></thead>
+        <tbody>
+          ${QUESTIONS.map((q, i) => {
+            const a = entryAnswers[i] || '—';
+            const rb = a==='Yes'?'b-yes':a==='Partial'?'b-partial':'b-no';
+            const sb = a==='Yes'?'b-low':a==='Partial'?'b-medium':'b-critical';
+            const sev = a==='Yes'?'Low':a==='Partial'?'Medium':'Critical';
+            return `<tr><td>${i+1}</td><td>${q.text}</td><td>${q.cat}</td><td><span class="badge ${rb}">${a}</span></td><td><span class="badge ${sb}">${sev}</span></td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h2>⚖️ Regulation & Compliance Violations</h2>
+      ${Object.keys(violatedRegs).length === 0
+        ? '<p style="color:#16a34a;font-size:.88rem;">✅ No regulation violations detected.</p>'
+        : Object.entries(violatedRegs).map(([k,v]) => `<div class="reg-block"><div class="reg-name">⚠️ ${k}</div>${v.map(item=>`<div class="reg-item">${item}</div>`).join('')}</div>`).join('')}
+    </div>
+    <div class="section">
+      <h2>💡 Recommendations</h2>
+      ${entryAnswers.map((a,i)=>a!=='Yes'
+        ?`<div class="rec-block"><div class="rec-q">${a==='No'?'🔴':'🟡'} ${QUESTIONS[i].text}</div><div class="rec-text">${REC_MAP[i]||'Review and improve this control.'}</div></div>`
+        :null).filter(Boolean).join('')||'<p style="color:#16a34a;font-size:.88rem;">✅ No recommendations — fully compliant!</p>'}
+    </div>
+  </div>
+  <div class="footer">Generated by AUDITRA v2.1 &nbsp;|&nbsp; Confidential &amp; Proprietary &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-IN')} &nbsp;|&nbsp; For authorized use only</div>
+</div>
+</body></html>`;
+
+  const blob = new Blob([reportHTML], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `AUDITRA_Report_${(info.org||'audit').replace(/\s+/g,'_')}_${info.date||'report'}.html`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast('Report downloaded successfully!', 'green');
+}
+
+
+// ══════════════════════════════════════════════════════
+// EXPORT DATA
+// ══════════════════════════════════════════════════════
+function exportData() {
+  const blob = new Blob([JSON.stringify({version:'2.1', exported:new Date().toISOString(), history}, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'auditra_data_export.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function showToast(msg, type='blue', duration=3000) {
+  const container = document.getElementById('toast');
+  const icons = {green:'✅', red:'🗑️', blue:'ℹ️'};
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+}
+
+function riskLabel(score) {
+  if (score <= 30) return {label:'🟢 Low Risk', cls:'b-low'};
+  if (score <= 50) return {label:'🟡 Medium Risk', cls:'b-medium'};
+  if (score <= 75) return {label:'🟠 High Risk', cls:'b-high'};
+  return {label:'🔴 Critical Risk', cls:'b-critical'};
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const p = d.split('-');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : d;
+}
+</script>
+</body>
+</html>
